@@ -1,54 +1,43 @@
 <x-layouts::auth :title="__('Reset password')">
-    <div class="flex flex-col gap-6">
+    <div class="auth-page auth-page--reset-password">
         <x-auth-header :title="__('Reset password')" :description="__('Please enter your new password below')" />
 
-        <!-- Session Status -->
-        <x-auth-session-status class="text-center" :status="session('status')" />
+        <x-auth-session-status class="auth-page__status" :status="session('status')" />
 
-        <form method="POST" action="{{ route('password.update') }}" class="flex flex-col gap-6">
+        <form method="POST" action="{{ route('password.update') }}" class="auth-page__form">
             @csrf
-            <!-- Token -->
             <input type="hidden" name="token" value="{{ request()->route('token') }}">
 
-            <!-- Email Address -->
-            <flux:input
+            <x-ui.input
                 name="email"
-                value="{{ request('email') }}"
+                :value="request('email')"
                 :label="__('Email')"
                 type="email"
                 required
                 autocomplete="email"
             />
 
-            <!-- Password -->
-            <flux:input
+            <x-ui.password-input
                 name="password"
                 :label="__('Password')"
-                type="password"
                 required
                 autocomplete="new-password"
                 :placeholder="__('Password')"
                 passwordrules="{{ \Illuminate\Validation\Rules\Password::defaults()->toPasswordRulesString() }}"
-                viewable
             />
 
-            <!-- Confirm Password -->
-            <flux:input
+            <x-ui.password-input
                 name="password_confirmation"
                 :label="__('Confirm password')"
-                type="password"
                 required
                 autocomplete="new-password"
                 :placeholder="__('Confirm password')"
                 passwordrules="{{ \Illuminate\Validation\Rules\Password::defaults()->toPasswordRulesString() }}"
-                viewable
             />
 
-            <div class="flex items-center justify-end">
-                <flux:button type="submit" variant="primary" class="w-full" data-test="reset-password-button">
-                    {{ __('Reset password') }}
-                </flux:button>
-            </div>
+            <x-ui.button type="submit" variant="primary" class="auth-page__action" data-test="reset-password-button">
+                {{ __('Reset password') }}
+            </x-ui.button>
         </form>
     </div>
 </x-layouts::auth>

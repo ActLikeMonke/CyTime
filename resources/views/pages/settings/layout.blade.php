@@ -1,20 +1,13 @@
-<div class="flex items-start max-md:flex-col">
-    <div class="me-10 w-full pb-4 md:w-[220px]">
-        <flux:navlist aria-label="{{ __('Settings') }}">
-            <flux:navlist.item :href="route('profile.edit')" wire:navigate>{{ __('Profile') }}</flux:navlist.item>
-            <flux:navlist.item :href="route('security.edit')" wire:navigate>{{ __('Security') }}</flux:navlist.item>
-            <flux:navlist.item :href="route('appearance.edit')" wire:navigate>{{ __('Appearance') }}</flux:navlist.item>
-        </flux:navlist>
-    </div>
+<div class="settings-layout">
+    <nav class="settings-nav" aria-label="{{ __('Settings') }}">
+        <x-ui.link class="settings-nav__link {{ request()->routeIs('profile.edit') ? 'is-current' : '' }}" :href="route('profile.edit')" wire:navigate>{{ __('Profile') }}</x-ui.link>
+        <x-ui.link class="settings-nav__link {{ request()->routeIs('security.edit') ? 'is-current' : '' }}" :href="route('security.edit')" wire:navigate>{{ __('Security') }}</x-ui.link>
+        <x-ui.link class="settings-nav__link {{ request()->routeIs('appearance.edit') ? 'is-current' : '' }}" :href="route('appearance.edit')" wire:navigate>{{ __('Appearance') }}</x-ui.link>
+    </nav>
 
-    <flux:separator class="md:hidden" />
-
-    <div class="flex-1 self-stretch max-md:pt-6">
-        <flux:heading>{{ $heading ?? '' }}</flux:heading>
-        <flux:subheading>{{ $subheading ?? '' }}</flux:subheading>
-
-        <div class="mt-5 w-full max-w-lg">
-            {{ $slot }}
-        </div>
-    </div>
+    <section class="settings-content">
+        <x-ui.heading>{{ $heading ?? '' }}</x-ui.heading>
+        <x-ui.subheading>{{ $subheading ?? '' }}</x-ui.subheading>
+        <div class="settings-content__body">{{ $slot }}</div>
+    </section>
 </div>

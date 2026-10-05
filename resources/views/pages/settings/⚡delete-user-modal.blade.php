@@ -2,10 +2,13 @@
 
 use App\Concerns\PasswordValidationRules;
 use App\Livewire\Actions\Logout;
+use App\Models\User;
+use App\Services\AccountDeactivationService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     use PasswordValidationRules;
 
     public string $password = '';
@@ -13,38 +16,51 @@ new class extends Component {
     /**
      * Delete the currently authenticated user.
      */
-    public function deleteUser(Logout $logout): void
+    public function deactivateAccount(Logout $logout, AccountDeactivationService $accounts): void
     {
         $this->validate([
             'password' => $this->currentPasswordRules(),
         ]);
 
-        tap(Auth::user(), $logout(...))->delete();
+        $user = Auth::user();
+        abort_unless($user instanceof User, 403);
 
+        $accounts->deactivate($user);
+        $logout();
         $this->redirect('/', navigate: true);
     }
 }; ?>
 
-<flux:modal name="confirm-user-deletion" :show="$errors->isNotEmpty()" focusable class="max-w-lg">
-    <form method="POST" wire:submit="deleteUser" class="space-y-6">
-        <div>
-            <flux:heading size="lg">{{ __('Are you sure you want to delete your account?') }}</flux:heading>
+<x-ui.modal
+    name="confirm-user-deletion"
+    aria-labelledby="delete-account-title"
+    :initially-open="$errors->has('password') || $errors->has('account')"
+>
+    <div class="settings-delete-account__modal">
+        <form method="POST" wire:submit="deleteUser" class="settings-delete-account__form">
+            <div class="settings-delete-account__message">
+                <x-ui.heading id="delete-account-title" size="lg">{{ __('Are you sure you want to deactivate your account?') }}</x-ui.heading>
 
-            <flux:subheading>
-                {{ __('Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.') }}
-            </flux:subheading>
-        </div>
+                <x-ui.subheading>
+                    {{ __('You will be signed out and can no longer use this account. Official time records will be retained, and personal account data will be anonymized after the retention period. Please enter your password to confirm.') }}
+                </x-ui.subheading>
+            </div>
 
-        <flux:input wire:model="password" :label="__('Password')" type="password" viewable />
+            @error('account')
+                <x-ui.alert type="error" role="alert">{{ $message }}</x-ui.alert>
+            @enderror
 
-        <div class="flex justify-end space-x-2 rtl:space-x-reverse">
-            <flux:modal.close>
-                <flux:button variant="filled">{{ __('Cancel') }}</flux:button>
-            </flux:modal.close>
+            <x-ui.password-input wire:model="password" error-key="password" :label="__('Password')" />
 
-            <flux:button variant="danger" type="submit" data-test="confirm-delete-user-button">
-                {{ __('Delete account') }}
-            </flux:button>
-        </div>
-    </form>
-</flux:modal>
+            <div class="settings-delete-account__actions">
+                <x-ui.modal-close>
+                    <x-ui.button variant="secondary">{{ __('Cancel') }}</x-ui.button>
+                </x-ui.modal-close>
+
+                <x-ui.button variant="danger" type="submit" data-test="confirm-delete-user-button">
+                    {{ __('Deactivate account') }}
+                </x-ui.button>
+            </div>
+        </form>
+    </div>
+</x-ui.modal>

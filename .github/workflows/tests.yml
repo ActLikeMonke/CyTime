@@ -34,5 +34,12 @@ jobs:
       - name: Setup Application
         run: composer setup
 
+      - name: Check for legacy frontend markup
+        run: |
+          if grep -rE '<flux:|dark:|\b(px|py|mx|my|gap)-[0-9]|\bbg-[a-z]+-[0-9]{2,3}' resources/views; then
+            echo "Legacy Flux or Tailwind markup found in resources/views." >&2
+            exit 1
+          fi
+
       - name: Run CI Checks
         run: composer ci:check

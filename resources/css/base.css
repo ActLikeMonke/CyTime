@@ -1,0 +1,75 @@
+@layer base {
+    body {
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font-sans);
+        font-size: 1rem;
+        line-height: 1.5;
+        transition: background-color 160ms ease, color 160ms ease;
+    }
+
+    h1,
+    h2,
+    h3 {
+        font-weight: 650;
+        line-height: 1.2;
+    }
+
+    h1 {
+        font-size: clamp(1.65rem, 3vw, 2.25rem);
+    }
+
+    h2 {
+        font-size: clamp(1.25rem, 2vw, 1.6rem);
+    }
+
+    h3 {
+        font-size: 1.125rem;
+    }
+
+    p,
+    small {
+        color: var(--text-muted);
+    }
+
+    small {
+        font-size: 0.875rem;
+    }
+
+    a {
+        color: var(--accent);
+        text-underline-offset: 0.18em;
+    }
+
+    code,
+    kbd,
+    pre {
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    }
+
+    :focus-visible {
+        outline: 3px solid var(--focus-ring);
+        outline-offset: 2px;
+    }
+
+    [x-cloak] {
+        display: none !important;
+    }
+
+    ::selection {
+        background: var(--accent);
+        color: var(--accent-text);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            scroll-behavior: auto !important;
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+}

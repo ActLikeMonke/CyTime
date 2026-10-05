@@ -10,12 +10,12 @@
     "license": "MIT",
     "require": {
         "php": "^8.3",
+        "blade-ui-kit/blade-heroicons": "^2.7",
         "laravel/chisel": "^0.1.0",
         "laravel/fortify": "^1.37.2",
         "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0",
         "livewire/blaze": "^1.0",
-        "livewire/flux": "^2.13.1",
         "livewire/livewire": "^4.1"
     },
     "require-dev": {
@@ -53,7 +53,7 @@
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
-            "@php artisan dev"
+            "npx concurrently -c \"#93c5fd,#c4b5fd,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"npm run dev\" --names='server,queue,vite'"
         ],
         "lint": [
             "pint --parallel"
@@ -66,7 +66,7 @@
             "@test"
         ],
         "types:check": [
-            "phpstan analyse"
+            "phpstan analyse --memory-limit=512M"
         ],
         "test": [
             "@php artisan config:clear --ansi",

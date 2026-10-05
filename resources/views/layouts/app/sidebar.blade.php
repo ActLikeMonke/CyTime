@@ -1,101 +1,71 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-screen bg-white dark:bg-zinc-800">
-        <flux:sidebar sticky collapsible="mobile" class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
-            <flux:sidebar.header>
-                <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
-                <flux:sidebar.collapse class="lg:hidden" />
-            </flux:sidebar.header>
-
-            <flux:sidebar.nav>
-                <flux:sidebar.group :heading="__('Platform')" class="grid">
-                    <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
-                        {{ __('Dashboard') }}
-                    </flux:sidebar.item>
-                </flux:sidebar.group>
-            </flux:sidebar.nav>
-
-            <flux:spacer />
-
-            <flux:sidebar.nav>
-                <flux:sidebar.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
-                    {{ __('Repository') }}
-                </flux:sidebar.item>
-
-                <flux:sidebar.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire" target="_blank">
-                    {{ __('Documentation') }}
-                </flux:sidebar.item>
-            </flux:sidebar.nav>
-
-            <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />
-        </flux:sidebar>
-
-        <!-- Mobile User Menu -->
-        <flux:header class="lg:hidden">
-            <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
-
-            <flux:spacer />
-
-            <flux:dropdown position="top" align="end">
-                <flux:profile
-                    :initials="auth()->user()->initials()"
-                    icon-trailing="chevron-down"
-                />
-
-                <flux:menu>
-                    <flux:menu.radio.group>
-                        <div class="p-0 text-sm font-normal">
-                            <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
-                                <flux:avatar
-                                    :name="auth()->user()->name"
-                                    :initials="auth()->user()->initials()"
-                                />
-
-                                <div class="grid flex-1 text-start text-sm leading-tight">
-                                    <flux:heading class="truncate">{{ auth()->user()->name }}</flux:heading>
-                                    <flux:text class="truncate">{{ auth()->user()->email }}</flux:text>
-                                </div>
-                            </div>
-                        </div>
-                    </flux:menu.radio.group>
-
-                    <flux:menu.separator />
-
-                    <flux:menu.radio.group>
-                        <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
-                            {{ __('Settings') }}
-                        </flux:menu.item>
-                    </flux:menu.radio.group>
-
-                    <flux:menu.separator />
-
-                    <form method="POST" action="{{ route('logout') }}" class="w-full">
+    <body>
+        <div class="app-shell">
+            <button class="app-sidebar__scrim" type="button" data-sidebar-toggle aria-expanded="false" aria-label="{{ __('Close navigation') }}"></button>
+            <aside class="app-sidebar" id="primary-navigation">
+                <div class="app-sidebar__brand">
+                    <x-app-logo href="{{ route('dashboard') }}" wire:navigate />
+                    <button class="ui-button ui-button--ghost ui-button--sm app-sidebar__close" type="button" data-sidebar-toggle aria-expanded="false" aria-label="{{ __('Close navigation') }}">
+                        <x-ui.icon name="x-mark" />
+                    </button>
+                </div>
+                <nav class="app-sidebar__nav" aria-label="{{ __('Main navigation') }}">
+                    <p class="app-sidebar__label">{{ __('Platform') }}</p>
+                    <a class="app-nav-link {{ request()->routeIs('dashboard') ? 'is-current' : '' }}" href="{{ route('dashboard') }}" wire:navigate>
+                        <x-ui.icon name="home" />{{ __('Dashboard') }}
+                    </a>
+                    <a class="app-nav-link {{ request()->routeIs('time.index') ? 'is-current' : '' }}" href="{{ route('time.index') }}" wire:navigate>
+                        <x-ui.icon name="clock" />{{ __('My time') }}
+                    </a>
+                    @if (auth()->user()->isEmployee())
+                        <a class="app-nav-link {{ request()->routeIs('time.calendar') ? 'is-current' : '' }}" href="{{ route('time.calendar') }}" wire:navigate>
+                            <x-ui.icon name="calendar-days" />{{ __('My time calendar') }}
+                        </a>
+                    @endif
+                    <a class="app-nav-link {{ request()->routeIs('absences.*') ? 'is-current' : '' }}" href="{{ route('absences.index') }}" wire:navigate>
+                        <x-ui.icon name="calendar" />{{ __('Absences and leave') }}
+                    </a>
+                    @if (auth()->user()->isSupervisor())
+                        <p class="app-sidebar__label">{{ __('Supervision') }}</p>
+                        <a class="app-nav-link {{ request()->routeIs('supervisor.dashboard') ? 'is-current' : '' }}" href="{{ route('supervisor.dashboard') }}" wire:navigate>
+                            <x-ui.icon name="chart-bar" />{{ __('Supervisor dashboard') }}
+                        </a>
+                        <a class="app-nav-link {{ request()->routeIs('supervisor.users.*') ? 'is-current' : '' }}" href="{{ route('supervisor.users.index') }}" wire:navigate>
+                            <x-ui.icon name="users" />{{ __('Employee access') }}
+                        </a>
+                        <a class="app-nav-link {{ request()->routeIs('supervisor.absences.*') ? 'is-current' : '' }}" href="{{ route('supervisor.absences.index') }}" wire:navigate>
+                            <x-ui.icon name="clipboard-document-check" />{{ __('Absence approvals') }}
+                        </a>
+                    @endif
+                </nav>
+                <div class="app-sidebar__footer">
+                    <a class="app-nav-link" href="{{ route('profile.edit') }}" wire:navigate>
+                        <x-ui.avatar :name="auth()->user()->name" :initials="auth()->user()->initials()" />
+                        <span class="app-user-summary">
+                            <strong>{{ auth()->user()->name }}</strong>
+                            <small>{{ auth()->user()->email }}</small>
+                        </span>
+                    </a>
+                    <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <flux:menu.item
-                            as="button"
-                            type="submit"
-                            icon="arrow-right-start-on-rectangle"
-                            class="w-full cursor-pointer"
-                            data-test="logout-button"
-                        >
-                            {{ __('Log out') }}
-                        </flux:menu.item>
+                        <button class="app-nav-link app-nav-link--button" type="submit" data-test="logout-button">
+                            <x-ui.icon name="arrow-right-start-on-rectangle" />{{ __('Log out') }}
+                        </button>
                     </form>
-                </flux:menu>
-            </flux:dropdown>
-        </flux:header>
-
-        {{ $slot }}
-
-        @persist('toast')
-            <flux:toast.group>
-                <flux:toast />
-            </flux:toast.group>
+                </div>
+            </aside>
+            <div class="app-content">
+                <main class="app-main">
+                    {{ $slot }}
+                </main>
+            </div>
+        </div>
+        @persist('toast-region')
+            <x-ui.toast-region />
         @endpersist
-
-        @fluxScripts
     </body>
 </html>

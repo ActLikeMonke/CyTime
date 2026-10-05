@@ -1,7 +1,7 @@
 <x-layouts::auth :title="__('Two-factor authentication')">
-    <div class="flex flex-col gap-6">
+    <div class="auth-page auth-page--two-factor">
         <div
-            class="relative w-full h-auto"
+            class="auth-page__two-factor-panel"
             x-cloak
             x-data="{
                 showRecoveryInput: @js($errors->has('recovery_code')),
@@ -43,26 +43,24 @@
                 />
             </div>
 
-            <form method="POST" action="{{ route('two-factor.login.store') }}">
+            <form method="POST" action="{{ route('two-factor.login.store') }}" class="auth-page__form">
                 @csrf
 
-                <div class="space-y-5 text-center">
+                <div class="auth-page__two-factor-content">
                     <div x-show="!showRecoveryInput">
-                        <div class="flex items-center justify-center my-5" x-ref="otp">
-                            <flux:otp
+                        <div class="auth-page__otp" x-ref="otp">
+                            <x-ui.otp
                                 x-model="code"
                                 length="6"
                                 name="code"
                                 label="OTP Code"
-                                label:sr-only
-                                class="mx-auto"
-                             />
+                            />
                         </div>
                     </div>
 
                     <div x-show="showRecoveryInput">
-                        <div class="my-5">
-                            <flux:input
+                        <div class="auth-page__recovery-field">
+                            <x-ui.input
                                 type="text"
                                 name="recovery_code"
                                 x-ref="recovery_code"
@@ -73,28 +71,22 @@
                         </div>
 
                         @error('recovery_code')
-                            <flux:text color="red">
+                            <x-ui.alert type="error" class="auth-page__error">
                                 {{ $message }}
-                            </flux:text>
+                            </x-ui.alert>
                         @enderror
                     </div>
 
-                    <flux:button
-                        variant="primary"
-                        type="submit"
-                        class="w-full"
-                    >
+                    <x-ui.button variant="primary" type="submit" class="auth-page__action">
                         {{ __('Continue') }}
-                    </flux:button>
+                    </x-ui.button>
                 </div>
 
-                <div class="mt-5 space-x-0.5 text-sm leading-5 text-center">
-                    <span class="opacity-50">{{ __('or you can') }}</span>
-                    <div class="inline font-medium underline cursor-pointer opacity-80">
-                        <span x-show="!showRecoveryInput" @click="toggleInput()">{{ __('login using a recovery code') }}</span>
-                        <span x-show="showRecoveryInput" @click="toggleInput()">{{ __('login using an authentication code') }}</span>
-                    </div>
-                </div>
+                <button class="auth-page__mode-toggle" type="button" @click="toggleInput()">
+                    <span>{{ __('or you can') }}</span>
+                    <span x-show="!showRecoveryInput">{{ __('login using a recovery code') }}</span>
+                    <span x-show="showRecoveryInput">{{ __('login using an authentication code') }}</span>
+                </button>
             </form>
         </div>
     </div>

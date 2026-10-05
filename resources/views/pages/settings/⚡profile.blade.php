@@ -1,8 +1,10 @@
 <?php
 
+use App\Models\WorkSchedule;
+use App\Services\WorkScheduleService;
 use App\Concerns\ProfileValidationRules;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Flux\Flux;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Computed;
@@ -12,16 +14,33 @@ use Livewire\Component;
 new #[Title('Profile settings')] class extends Component {
     use ProfileValidationRules;
 
-    public string $name = '';
+    public string $first_name = '';
+    public string $last_name = '';
     public string $email = '';
+    public string $weeklyHours = '40';
+    public array $workDays = ['mon', 'tue', 'wed', 'thu', 'fri'];
+    public string $scheduleValidFrom = '';
 
     /**
      * Mount the component.
      */
     public function mount(): void
     {
-        $this->name = Auth::user()->name;
+        $this->first_name = Auth::user()->first_name;
+        $this->last_name = Auth::user()->last_name;
         $this->email = Auth::user()->email;
+
+        $schedule = Auth::user()->workSchedules()
+            ->whereDate('valid_from', '<=', today())
+            ->orderByDesc('valid_from')
+            ->first();
+
+        if ($schedule instanceof WorkSchedule) {
+            $this->weeklyHours = (string) $schedule->weekly_hours;
+            $this->workDays = $schedule->work_days;
+        }
+
+        $this->scheduleValidFrom = today()->addDay()->toDateString();
     }
 
     /**
@@ -41,7 +60,24 @@ new #[Title('Profile settings')] class extends Component {
 
         $user->save();
 
-        Flux::toast(variant: 'success', text: __('Profile updated.'));
+        $this->dispatch('toast-show', type: 'success', text: __('Profile updated.'));
+    }
+
+    public function updateWorkingSchedule(): void
+    {
+        $user = Auth::user();
+
+        Gate::authorize('updateSchedule', $user);
+
+        app(WorkScheduleService::class)->change(
+            $user,
+            $user,
+            $this->weeklyHours,
+            $this->workDays,
+            $this->scheduleValidFrom,
+        );
+
+        $this->dispatch('toast-show', type: 'success', text: __('Working schedule updated.'));
     }
 
     /**
@@ -76,46 +112,100 @@ new #[Title('Profile settings')] class extends Component {
     }
 }; ?>
 
-<section class="w-full">
+<section class="settings-profile">
     @include('partials.settings-heading')
 
-    <flux:heading level="2" class="sr-only">{{ __('Profile settings') }}</flux:heading>
+    <x-ui.heading level="2" class="visually-hidden">{{ __('Profile settings') }}</x-ui.heading>
 
     <x-pages::settings.layout :heading="__('Profile')" :subheading="__('Update your name and email address')">
-        <form wire:submit="updateProfileInformation" class="my-6 w-full space-y-6">
-            <flux:input wire:model="name" :label="__('Name')" type="text" required autofocus autocomplete="name" />
+        <form wire:submit="updateProfileInformation" class="settings-profile__form">
+            <x-ui.input wire:model="first_name" error-key="first_name" :label="__('First name')" type="text" required autofocus autocomplete="given-name" />
+            <x-ui.input wire:model="last_name" error-key="last_name" :label="__('Last name')" type="text" required autocomplete="family-name" />
 
-            <div>
-                <flux:input wire:model="email" :label="__('Email')" type="email" required autocomplete="email" />
+            <div class="settings-profile__email-field">
+                <x-ui.input wire:model="email" error-key="email" :label="__('Email')" type="email" required autocomplete="email" />
 
                 @if ($this->hasUnverifiedEmail)
-                    <div>
-                        <flux:text class="mt-4">
+                    <div class="settings-profile__verification">
+                        <x-ui.text>
                             {{ __('Your email address is unverified.') }}
 
-                            <flux:link class="text-sm cursor-pointer" wire:click.prevent="resendVerificationNotification">
+                            <x-ui.link wire:click.prevent="resendVerificationNotification">
                                 {{ __('Click here to re-send the verification email.') }}
-                            </flux:link>
-                        </flux:text>
+                            </x-ui.link>
+                        </x-ui.text>
 
                         @if (session('status') === 'verification-link-sent')
-                            <flux:text class="mt-2 font-medium !dark:text-green-400 !text-green-600">
+                            <x-ui.alert type="success" class="settings-profile__status">
                                 {{ __('A new verification link has been sent to your email address.') }}
-                            </flux:text>
+                            </x-ui.alert>
                         @endif
                     </div>
                 @endif
             </div>
 
-            <div class="flex items-center gap-4">
-                <div class="flex items-center justify-end">
-                    <flux:button variant="primary" type="submit" class="w-full" data-test="update-profile-button">
-                        {{ __('Save') }}
-                    </flux:button>
-                </div>
-
+            <div class="settings-profile__actions">
+                <x-ui.button variant="primary" type="submit" data-test="update-profile-button">{{ __('Save') }}</x-ui.button>
             </div>
         </form>
+
+        <form wire:submit="updateWorkingSchedule" class="settings-profile__schedule-form">
+            <div class="settings-profile__schedule-heading">
+                <x-ui.heading level="3">{{ __('Working schedule') }}</x-ui.heading>
+                <x-ui.text>{{ __('Schedule changes are recorded as history and apply from the selected date. Leave entitlement is not changed automatically.') }}</x-ui.text>
+            </div>
+
+            <x-ui.input
+                wire:model="weeklyHours"
+                error-key="weeklyHours"
+                :label="__('Weekly working hours')"
+                type="number"
+                min="0.01"
+                max="40"
+                step="0.01"
+                required
+            />
+            @error('weeklyHours')
+                <p class="settings-profile__error" role="alert">{{ $message }}</p>
+            @enderror
+
+            <x-ui.input
+                wire:model="scheduleValidFrom"
+                :error="$errors->first('scheduleValidFrom') ?: $errors->first('validFrom')"
+                :label="__('Effective from')"
+                type="date"
+                required
+            />
+
+            <fieldset class="settings-profile__workdays">
+                <legend class="settings-profile__legend">{{ __('Workdays') }}</legend>
+                @foreach (['mon' => __('Monday'), 'tue' => __('Tuesday'), 'wed' => __('Wednesday'), 'thu' => __('Thursday'), 'fri' => __('Friday')] as $day => $label)
+                    <x-ui.checkbox class="settings-profile__workday" wire:model="workDays" value="{{ $day }}" :label="$label" />
+                @endforeach
+                @error('workDays')
+                    <p class="settings-profile__error" role="alert">{{ $message }}</p>
+                @enderror
+                @error('workDays.*')
+                    <p class="settings-profile__error" role="alert">{{ $message }}</p>
+                @enderror
+                @error('validFrom')
+                    <p class="settings-profile__error" role="alert">{{ $message }}</p>
+                @enderror
+            </fieldset>
+
+            <x-ui.button variant="primary" type="submit">{{ __('Save schedule') }}</x-ui.button>
+        </form>
+
+        <section class="settings-profile__schedule-form" aria-labelledby="data-export-heading">
+            <div class="settings-profile__schedule-heading">
+                <x-ui.heading level="3" id="data-export-heading">{{ __('Download your data') }}</x-ui.heading>
+                <x-ui.text>{{ __('Download a copy of your profile, work schedules, time entries, absences, and related audit history.') }}</x-ui.text>
+            </div>
+            <div class="cluster">
+                <x-ui.button variant="secondary" href="{{ route('settings.data-export', ['format' => 'json']) }}">{{ __('Download JSON') }}</x-ui.button>
+                <x-ui.button variant="secondary" href="{{ route('settings.data-export', ['format' => 'csv']) }}">{{ __('Download CSV') }}</x-ui.button>
+            </div>
+        </section>
 
         @if ($this->showDeleteUser)
             <livewire:pages::settings.delete-user-form />

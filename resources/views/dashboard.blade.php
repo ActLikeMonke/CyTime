@@ -1,18 +1,17 @@
 <x-layouts::app :title="__('Dashboard')">
-    <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
-        <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-                <x-placeholder-pattern class="absolute inset-0 size-full stroke-gray-900/20 dark:stroke-neutral-100/20" />
+    <div class="dashboard-page">
+        <div class="dashboard-page__intro">
+            <div class="app-page-title-row">
+                <x-ui.heading level="1" size="xl">{{ __('Welcome, :name', ['name' => auth()->user()->first_name]) }}</x-ui.heading>
+                <x-app-page-actions />
             </div>
-            <div class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-                <x-placeholder-pattern class="absolute inset-0 size-full stroke-gray-900/20 dark:stroke-neutral-100/20" />
-            </div>
-            <div class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-                <x-placeholder-pattern class="absolute inset-0 size-full stroke-gray-900/20 dark:stroke-neutral-100/20" />
-            </div>
+            <x-ui.text>{{ __('Track your working hours, review your weekly balance, and manage your time entries.') }}</x-ui.text>
         </div>
-        <div class="relative h-full flex-1 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-            <x-placeholder-pattern class="absolute inset-0 size-full stroke-gray-900/20 dark:stroke-neutral-100/20" />
+        <div class="dashboard-page__actions">
+            <x-ui.button :href="route('time.index')" variant="primary" wire:navigate>{{ __('Open time tracking') }}</x-ui.button>
+            @if (auth()->user()->isSupervisor())
+                <x-ui.button :href="route('supervisor.dashboard')" wire:navigate>{{ __('Supervisor dashboard') }}</x-ui.button>
+            @endif
         </div>
     </div>
 </x-layouts::app>

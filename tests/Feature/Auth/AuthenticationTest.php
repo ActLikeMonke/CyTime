@@ -43,7 +43,59 @@ class AuthenticationTest extends TestCase
             'password' => 'wrong-password',
         ]);
 
-        $response->assertSessionHasErrorsIn('email');
+        $response->assertSessionHasErrors(['email' => trans('auth.failed')]);
+
+        $this->assertGuest();
+    }
+
+    public function test_deactivated_users_cannot_authenticate(): void
+    {
+        $user = User::factory()->create();
+        $user->forceFill(['deactivated_at' => now()])->save();
+
+        $response = $this->post(route('login.store'), [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+        $response->assertSessionHasErrors(['email' => trans('auth.failed')]);
+        $this->assertGuest();
+    }
+
+    public function test_unknown_email_receives_the_same_generic_error_as_an_invalid_password(): void
+    {
+        User::factory()->create(['email' => 'known@example.com']);
+
+        $wrongPasswordResponse = $this->post(route('login.store'), [
+            'email' => 'known@example.com',
+            'password' => 'wrong-password',
+        ]);
+        $wrongPasswordResponse->assertSessionHasErrors(['email' => trans('auth.failed')]);
+
+        $unknownEmailResponse = $this->post(route('login.store'), [
+            'email' => 'unknown@example.com',
+            'password' => 'wrong-password',
+        ]);
+        $unknownEmailResponse->assertSessionHasErrors(['email' => trans('auth.failed')]);
+
+        $this->assertGuest();
+    }
+
+    public function test_login_is_rate_limited_after_five_failed_attempts(): void
+    {
+        User::factory()->create(['email' => 'known@example.com']);
+
+        for ($attempt = 0; $attempt < 5; $attempt++) {
+            $this->post(route('login.store'), [
+                'email' => 'known@example.com',
+                'password' => 'wrong-password',
+            ])->assertSessionHasErrors(['email' => trans('auth.failed')]);
+        }
+
+        $this->post(route('login.store'), [
+            'email' => 'known@example.com',
+            'password' => 'wrong-password',
+        ])->assertStatus(429);
 
         $this->assertGuest();
     }
@@ -72,9 +124,11 @@ class AuthenticationTest extends TestCase
     {
         $user = User::factory()->create();
 
+        $this->withSession(['private_session_value' => 'must be cleared']);
         $response = $this->actingAs($user)->post(route('logout'));
 
-        $response->assertRedirect(route('home'));
+        $response->assertRedirect(route('home'))
+            ->assertSessionMissing('private_session_value');
 
         $this->assertGuest();
     }

@@ -1,15 +1,13 @@
 <x-layouts::auth :title="__('Forgot password')">
-    <div class="flex flex-col gap-6">
+    <div class="auth-page auth-page--forgot-password">
         <x-auth-header :title="__('Forgot password')" :description="__('Enter your email to receive a password reset link')" />
 
-        <!-- Session Status -->
-        <x-auth-session-status class="text-center" :status="session('status')" />
+        <x-auth-session-status class="auth-page__status" :status="session('status')" />
 
-        <form method="POST" action="{{ route('password.email') }}" class="flex flex-col gap-6">
+        <form method="POST" action="{{ route('password.email') }}" class="auth-page__form">
             @csrf
 
-            <!-- Email Address -->
-            <flux:input
+            <x-ui.input
                 name="email"
                 :label="__('Email address')"
                 type="email"
@@ -18,14 +16,14 @@
                 placeholder="email@example.com"
             />
 
-            <flux:button variant="primary" type="submit" class="w-full" data-test="email-password-reset-link-button">
+            <x-ui.button variant="primary" type="submit" class="auth-page__action" data-test="email-password-reset-link-button">
                 {{ __('Email password reset link') }}
-            </flux:button>
+            </x-ui.button>
         </form>
 
-        <div class="space-x-1 rtl:space-x-reverse text-center text-sm text-zinc-400">
+        <div class="auth-page__footer">
             <span>{{ __('Or, return to') }}</span>
-            <flux:link :href="route('login')" wire:navigate>{{ __('log in') }}</flux:link>
+            <x-ui.link :href="route('login')" wire:navigate>{{ __('log in') }}</x-ui.link>
         </div>
     </div>
 </x-layouts::auth>

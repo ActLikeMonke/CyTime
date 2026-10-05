@@ -1,0 +1,109 @@
+@layer tokens {
+    :root {
+        color-scheme: light;
+
+        --color-white: hsl(0 0% 100%);
+        --color-black: hsl(0 0% 0%);
+        --color-light: hsl(0 0% 100%);
+        --color-subtle-light: hsl(210 20% 98%);
+        --color-dark: hsl(0 0% 16%);
+        --color-subtle-dark: hsl(0 0% 12%);
+        --color-primary-25: hsl(22 81% 94%);
+        --color-primary-50: hsl(18 100% 86%);
+        --color-primary-100: hsl(18 90% 79%);
+        --color-primary-200: hsl(18 96% 69%);
+        --color-primary-300: hsl(18 80% 57%);
+        --color-primary-400: hsl(21 81% 42%);
+        --color-primary-500: hsl(25 96% 33%);
+        --color-primary-600: hsl(24 98% 25%);
+        --color-primary-700: hsl(26 94% 20%);
+        --color-primary-800: hsl(26 94% 13%);
+        --color-primary-900: hsl(26 94% 7%);
+
+        --bg: var(--color-subtle-light);
+        --surface: var(--color-light);
+        --surface-subtle: var(--color-subtle-light);
+        --qr-background: var(--color-white);
+        --text: hsl(0 0% 10%);
+        --text-muted: color-mix(in srgb, var(--text) 68%, var(--bg));
+        --border: color-mix(in srgb, var(--text) 48%, var(--bg));
+        --accent: var(--color-primary-500);
+        --accent-hover: var(--color-primary-600);
+        --accent-text: var(--color-white);
+        --accent-soft: var(--color-primary-25);
+        --focus-ring: var(--color-primary-400);
+
+        --status-holiday: hsl(213 77% 34%);
+        --status-holiday-surface: hsl(214 100% 94%);
+        --status-sick: hsl(0 70% 36%);
+        --status-sick-surface: hsl(0 100% 95%);
+        --status-vacation: hsl(272 60% 36%);
+        --status-vacation-surface: hsl(270 100% 96%);
+        --status-vacation-pending: hsl(272 45% 34%);
+        --status-vacation-pending-surface: hsl(270 70% 98%);
+        --status-booked: hsl(145 65% 25%);
+        --status-booked-surface: hsl(140 55% 93%);
+        --status-empty: var(--text-muted);
+        --status-empty-surface: var(--surface);
+        --status-warning: hsl(35 85% 28%);
+        --status-warning-surface: hsl(43 100% 93%);
+        --status-success: hsl(145 65% 25%);
+        --status-success-surface: hsl(140 55% 93%);
+        --status-error: hsl(0 70% 36%);
+        --status-error-surface: hsl(0 100% 95%);
+        --status-info: hsl(213 77% 34%);
+        --status-info-surface: hsl(214 100% 94%);
+
+        --space-1: 0.25rem;
+        --space-2: 0.5rem;
+        --space-3: 0.75rem;
+        --space-4: 1rem;
+        --space-5: 1.5rem;
+        --space-6: 2rem;
+        --space-7: 3rem;
+        --space-8: 4rem;
+        --radius: 0.65rem;
+        --radius-small: 0.35rem;
+        --radius-large: 1rem;
+        --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+        --shadow: 0 1px 3px hsl(0 0% 0% / 0.12), 0 1px 2px hsl(0 0% 0% / 0.08);
+    }
+
+    :root.dark {
+        color-scheme: dark;
+
+        --bg: var(--color-subtle-dark);
+        --surface: var(--color-dark);
+        --surface-subtle: hsl(0 0% 14%);
+        --qr-background: var(--color-white);
+        --text: hsl(0 0% 96%);
+        --text-muted: color-mix(in srgb, var(--text) 68%, var(--bg));
+        --border: color-mix(in srgb, var(--text) 48%, var(--bg));
+        --accent: var(--color-primary-300);
+        --accent-hover: var(--color-primary-200);
+        --accent-text: var(--color-black);
+        --accent-soft: hsl(24 60% 19%);
+        --focus-ring: var(--color-primary-200);
+
+        --status-holiday: hsl(213 100% 84%);
+        --status-holiday-surface: hsl(215 50% 20%);
+        --status-sick: hsl(0 100% 85%);
+        --status-sick-surface: hsl(0 48% 21%);
+        --status-vacation: hsl(272 100% 87%);
+        --status-vacation-surface: hsl(273 42% 22%);
+        --status-vacation-pending: hsl(272 100% 88%);
+        --status-vacation-pending-surface: hsl(273 32% 17%);
+        --status-booked: hsl(140 72% 82%);
+        --status-booked-surface: hsl(145 36% 19%);
+        --status-empty: var(--text-muted);
+        --status-empty-surface: var(--surface);
+        --status-warning: hsl(43 100% 83%);
+        --status-warning-surface: hsl(35 45% 18%);
+        --status-success: hsl(140 72% 82%);
+        --status-success-surface: hsl(145 36% 19%);
+        --status-error: hsl(0 100% 85%);
+        --status-error-surface: hsl(0 48% 21%);
+        --status-info: hsl(213 100% 84%);
+        --status-info-surface: hsl(215 50% 20%);
+    }
+}

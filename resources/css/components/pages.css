@@ -1,0 +1,955 @@
+@layer components {
+    .auth-page,
+    .settings-profile,
+    .settings-security,
+    .settings-appearance,
+    .settings-recovery-codes,
+    .settings-delete-account,
+    .settings-two-factor-setup,
+    .time-page,
+    .absence-page,
+    .time-calendar,
+    .supervisor-absences,
+    .supervisor-dashboard,
+    .supervisor-detail,
+    .supervisor-users,
+    .dashboard-page {
+        display: grid;
+        gap: var(--space-5);
+        min-width: 0;
+    }
+
+    .auth-page__form,
+    .settings-profile__form,
+    .settings-profile__schedule-form,
+    .settings-security__password-form,
+    .settings-delete-account__form,
+    .settings-recovery-codes__content,
+    .settings-two-factor-setup__verification,
+    .settings-two-factor-setup__manual,
+    .absence-page__form,
+    .supervisor-users__form {
+        display: grid;
+        gap: var(--space-4);
+        min-width: 0;
+    }
+
+    .auth-page__actions,
+    .auth-page__footer,
+    .settings-profile__actions,
+    .settings-security__actions,
+    .settings-delete-account__actions,
+    .settings-recovery-codes__actions,
+    .settings-security__modal-actions,
+    .settings-two-factor-setup__actions,
+    .time-page__form-actions,
+    .time-page__period-controls,
+    .time-calendar__header,
+    .time-calendar__controls,
+    .time-calendar__month-navigation,
+    .time-calendar__modal-actions,
+    .supervisor-absences__actions,
+    .supervisor-detail__month-controls,
+    .supervisor-dashboard__filter-controls {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-3);
+    }
+
+    .auth-page__actions,
+    .settings-profile__actions,
+    .settings-security__actions,
+    .settings-delete-account__actions,
+    .settings-recovery-codes__actions,
+    .settings-security__modal-actions,
+    .settings-two-factor-setup__actions,
+    .time-page__form-actions,
+    .time-calendar__modal-actions,
+    .supervisor-absences__actions {
+        justify-content: flex-start;
+    }
+
+    .auth-brand--inverse {
+        color: var(--accent-text);
+    }
+
+    .auth-page__status,
+    .auth-page__status-message,
+    .auth-page__action,
+    .settings-profile__error,
+    .settings-security__empty-title,
+    .settings-two-factor-setup__manual-label,
+    .time-page__error,
+    .time-calendar__error,
+    .supervisor-absences__error,
+    .supervisor-users__error {
+        margin: 0;
+    }
+
+    .auth-page__status-message,
+    .settings-profile__error,
+    .time-page__error,
+    .time-calendar__error,
+    .supervisor-absences__error,
+    .supervisor-users__error {
+        color: var(--status-error);
+    }
+
+    .settings-profile__schedule-form,
+    .settings-security__two-factor,
+    .settings-security__passkeys,
+    .settings-recovery-codes__section,
+    .settings-delete-account__intro {
+        padding-top: var(--space-5);
+        border-top: 1px solid var(--border);
+    }
+
+    .settings-heading {
+        position: relative;
+        width: 100%;
+    }
+
+    .settings-heading__separator {
+        margin-top: var(--space-4);
+    }
+
+    .settings-profile__schedule-heading,
+    .settings-security__section-content,
+    .settings-security__section-description,
+    .settings-security__passkey-list,
+    .settings-security__empty,
+    .settings-recovery-codes__header,
+    .settings-recovery-codes__details,
+    .settings-two-factor-setup__description,
+    .settings-two-factor-setup__qr,
+    .settings-two-factor-setup__setup-key,
+    .settings-delete-account__message,
+    .settings-two-factor-setup__modal {
+        display: grid;
+        gap: var(--space-3);
+        min-width: 0;
+    }
+
+    .settings-profile__workdays,
+    .supervisor-users__workdays {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-3);
+        min-width: 0;
+        padding: var(--space-4);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+    }
+
+    .settings-profile__legend,
+    .supervisor-users__workdays legend {
+        padding-inline: var(--space-2);
+        color: var(--text);
+        font-weight: 600;
+    }
+
+    .settings-profile__workday,
+    .supervisor-users__workday-option {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+    }
+
+    .settings-profile__email-field,
+    .settings-profile__verification {
+        display: grid;
+        gap: var(--space-2);
+        min-width: 0;
+    }
+
+    .settings-profile__status {
+        margin: var(--space-2) 0;
+    }
+
+    .supervisor-users__workdays input {
+        width: 1.1rem;
+        height: 1.1rem;
+        accent-color: var(--accent);
+    }
+
+    .settings-security__passkey {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-3);
+        padding-block: var(--space-3);
+    }
+
+    .settings-security__passkey-identity,
+    .settings-security__passkey-title {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-3);
+        min-width: 0;
+    }
+
+    .settings-security__passkey-details,
+    .settings-security__passkey-metadata {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .settings-security__passkey-title p,
+    .settings-security__passkey-metadata {
+        margin: 0;
+    }
+
+    .settings-security__passkey-icon,
+    .settings-security__empty-icon,
+    .settings-two-factor-setup__illustration,
+    .settings-two-factor-setup__loading {
+        display: grid;
+        width: 2.75rem;
+        aspect-ratio: 1;
+        flex: none;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--accent-soft);
+        color: var(--accent);
+    }
+
+    .settings-security__modal,
+    .settings-security__modal-content {
+        display: grid;
+        gap: var(--space-4);
+    }
+
+    .settings-security__modal-message,
+    .settings-two-factor-setup__header {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--space-4);
+    }
+
+    .settings-security__modal {
+        width: min(100%, 34rem);
+    }
+
+    .settings-security__remove-passkey,
+    .settings-two-factor-setup__copy {
+        flex: none;
+    }
+
+    .settings-two-factor-setup__continue {
+        justify-self: start;
+    }
+
+    .settings-two-factor-setup__separator {
+        margin-block: var(--space-2);
+    }
+
+    .settings-recovery-codes__title,
+    .supervisor-users__panel-heading {
+        display: grid;
+        gap: var(--space-2);
+    }
+
+    .settings-two-factor-setup__qr {
+        justify-items: center;
+        padding: var(--space-4);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface-subtle);
+    }
+
+    .settings-two-factor-setup__qr-image {
+        max-width: 100%;
+        padding: var(--space-3);
+        background: var(--qr-background);
+    }
+
+    .settings-two-factor-setup__qr-image svg {
+        display: block;
+        max-width: min(100%, 16rem);
+        height: auto;
+    }
+
+    .settings-two-factor-setup__setup-key {
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+    }
+
+    .settings-two-factor-setup__setup-key-input {
+        min-width: 0;
+    }
+
+    .settings-two-factor-setup__otp {
+        display: grid;
+        gap: var(--space-3);
+    }
+
+    .settings-two-factor-setup__action {
+        flex: 1;
+    }
+
+    .settings-recovery-codes__item {
+        padding: var(--space-2);
+        border-radius: var(--radius-small);
+        background: var(--surface);
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        text-align: center;
+    }
+
+    .settings-recovery-codes__hint {
+        color: var(--text-muted);
+    }
+
+    .settings-recovery-codes__item--loading {
+        color: var(--text-muted);
+    }
+
+    .time-page__header,
+    .absence-page__header,
+    .time-calendar__intro,
+    .supervisor-absences__header,
+    .supervisor-dashboard__header,
+    .supervisor-detail__header,
+    .supervisor-detail__intro,
+    .supervisor-users__header,
+    .dashboard-page__intro {
+        display: grid;
+        gap: var(--space-2);
+        min-width: 0;
+    }
+
+    .time-calendar__intro {
+        width: 100%;
+        flex: 1 1 100%;
+    }
+
+    .time-page__title-row,
+    .app-page-title-row {
+        display: flex;
+        align-items: center;
+        min-width: 0;
+    }
+
+    .time-page__title-row,
+    .app-page-title-row {
+        justify-content: space-between;
+        gap: var(--space-4);
+    }
+
+    .app-page-actions {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        flex: none;
+    }
+
+    .app-page-actions__menu,
+    .app-page-actions__settings {
+        display: grid;
+        place-items: center;
+        width: 3.5rem;
+        height: 3.5rem;
+        flex: none;
+        padding: var(--space-2);
+    }
+
+    .app-page-actions__menu .ui-icon,
+    .app-page-actions__settings .ui-icon {
+        width: 1.75rem;
+        height: 1.75rem;
+    }
+
+    .app-page-title-row > .ui-heading,
+    .time-page__title-row > .ui-heading {
+        min-width: 0;
+        font-size: clamp(2rem, 5vw, 3rem);
+    }
+
+    .time-page__balance,
+    .absence-page__balance,
+    .supervisor-dashboard__summary,
+    .supervisor-detail__summary,
+    .supervisor-detail__weekly-balances {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+        gap: var(--space-3);
+    }
+
+    .time-page__balance-card,
+    .absence-page__balance-card,
+    .supervisor-dashboard__summary-card,
+    .supervisor-detail__summary-card,
+    .supervisor-detail__week-card,
+    .time-page__panel,
+    .time-page__entry-form,
+    .time-page__overview,
+    .absence-page__form-panel,
+    .supervisor-absences__requests,
+    .supervisor-dashboard__filters,
+    .supervisor-users__form-panel,
+    .supervisor-detail__section {
+        min-width: 0;
+        padding: var(--space-4);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+    }
+
+    .time-page__balance-card,
+    .absence-page__balance-card,
+    .supervisor-dashboard__summary-card,
+    .supervisor-detail__summary-card,
+    .supervisor-detail__week-card {
+        display: grid;
+        align-content: start;
+        gap: var(--space-2);
+    }
+
+    .time-page__work-area {
+        display: grid;
+        gap: var(--space-5);
+        min-width: 0;
+    }
+
+    .time-page__entry-form,
+    .time-page__overview,
+    .absence-page__form-panel,
+    .supervisor-users__form-panel {
+        display: grid;
+        align-content: start;
+        gap: var(--space-4);
+    }
+
+    .time-page__overview-header,
+    .supervisor-dashboard__filter-layout,
+    .supervisor-detail__month-controls {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: end;
+        justify-content: space-between;
+        gap: var(--space-4);
+    }
+
+    .time-page__period-controls,
+    .supervisor-dashboard__filter-controls {
+        align-items: end;
+    }
+
+    .time-page__period-controls > *,
+    .supervisor-dashboard__filter-controls > * {
+        flex: 1 1 8rem;
+    }
+
+    .time-page__period-controls {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: end;
+    }
+
+    .time-page__period-controls > * {
+        min-width: 0;
+        flex: initial;
+    }
+
+    .time-page__period-controls > .ui-button {
+        width: 3rem;
+        padding-inline: 0;
+    }
+
+    .time-page__panel {
+        display: grid;
+        width: 100%;
+        align-content: start;
+        gap: var(--space-3);
+    }
+
+    .time-page__entry-date {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        align-items: end;
+        gap: var(--space-2);
+        min-width: 0;
+    }
+
+    .time-page__entry-date > .ui-field {
+        min-width: 0;
+    }
+
+    .time-page__entry-date > .ui-button {
+        width: 2.65rem;
+        padding-inline: 0;
+    }
+
+    .time-page__summary,
+    .time-page__empty-state,
+    .absence-page__empty-state,
+    .supervisor-dashboard__empty-state,
+    .supervisor-detail__empty-state {
+        margin: 0;
+        padding: var(--space-4);
+        color: var(--text-muted);
+        text-align: center;
+    }
+
+    .time-page__absence-list {
+        display: grid;
+        gap: var(--space-3);
+    }
+
+    .time-page__warning,
+    .time-calendar__warning,
+    .absence-page__balance-warning,
+    .supervisor-users__warning {
+        padding: var(--space-4);
+        border: 1px solid var(--status-warning);
+        border-radius: var(--radius);
+        background: var(--status-warning-surface);
+        color: var(--status-warning);
+    }
+
+    .absence-page__error {
+        margin: 0;
+        color: var(--status-error);
+    }
+
+    .time-page__warning-title,
+    .time-calendar__warning-title {
+        margin: 0;
+        font-weight: 700;
+    }
+
+    .time-page__warning-list,
+    .time-calendar__warning-list,
+    .supervisor-users__violation-list {
+        padding-inline-start: var(--space-5);
+    }
+
+    .time-page__rule-details summary {
+        color: var(--status-warning);
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .time-page__table-scroll,
+    .absence-page__table-scroll,
+    .supervisor-dashboard__table-scroll,
+    .supervisor-detail__table-scroll,
+    .supervisor-users__table-scroll {
+        max-width: 100%;
+        overflow-x: auto;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        overscroll-behavior-inline: contain;
+    }
+
+    .time-page__table,
+    .absence-page__table,
+    .supervisor-dashboard__table,
+    .supervisor-detail__table,
+    .supervisor-users__table {
+        width: 100%;
+        border-collapse: collapse;
+        color: var(--text);
+        text-align: left;
+    }
+
+    .time-page__table th,
+    .time-page__table td,
+    .absence-page__table th,
+    .absence-page__table td,
+    .supervisor-dashboard__table th,
+    .supervisor-dashboard__table td,
+    .supervisor-detail__table th,
+    .supervisor-detail__table td,
+    .supervisor-users__table th,
+    .supervisor-users__table td {
+        min-width: 5rem;
+        padding: var(--space-3) var(--space-4);
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+    }
+
+    .time-page__table th,
+    .absence-page__table th,
+    .supervisor-dashboard__table th,
+    .supervisor-detail__table th,
+    .supervisor-users__table th {
+        background: var(--surface-subtle);
+        font-size: 0.875rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .time-page__table tbody tr:nth-child(even),
+    .absence-page__table tbody tr:nth-child(even),
+    .supervisor-dashboard__table tbody tr:nth-child(even),
+    .supervisor-detail__table tbody tr:nth-child(even),
+    .supervisor-users__table tbody tr:nth-child(even) {
+        background: color-mix(in srgb, var(--surface-subtle) 55%, var(--surface));
+    }
+
+    .time-page__table tbody tr:hover,
+    .absence-page__table tbody tr:hover,
+    .supervisor-dashboard__table tbody tr:hover,
+    .supervisor-detail__table tbody tr:hover,
+    .supervisor-users__table tbody tr:hover {
+        background: var(--accent-soft);
+    }
+
+    .absence-page__requests,
+    .supervisor-absences__requests,
+    .supervisor-dashboard__filters {
+        display: grid;
+        align-content: start;
+        gap: var(--space-4);
+    }
+
+    .supervisor-absences__request-list {
+        display: grid;
+        gap: var(--space-4);
+    }
+
+    .supervisor-absences__request {
+        display: grid;
+        gap: var(--space-4);
+        min-width: 0;
+        padding: var(--space-4);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface-subtle);
+    }
+
+    .supervisor-absences__request-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: var(--space-3);
+    }
+
+    .supervisor-absences__request-summary {
+        display: grid;
+        gap: var(--space-1);
+    }
+
+    .supervisor-dashboard__export-form {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: end;
+        gap: var(--space-3);
+        min-width: min(100%, 19rem);
+    }
+
+    .supervisor-dashboard__export-form > :first-child {
+        flex: 1 1 10rem;
+    }
+
+    .supervisor-dashboard__employee-link {
+        font-weight: 600;
+    }
+
+    .supervisor-dashboard__balance {
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+
+    .supervisor-dashboard__status {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        font-weight: 600;
+    }
+
+    .supervisor-dashboard__balance--positive,
+    .supervisor-detail__balance--positive,
+    .status-positive {
+        color: var(--status-success);
+        font-weight: 700;
+    }
+
+    .supervisor-dashboard__balance--negative,
+    .supervisor-detail__balance--negative,
+    .status-negative {
+        color: var(--status-error);
+        font-weight: 700;
+    }
+
+    .supervisor-dashboard__status--ok { color: var(--status-success); }
+    .supervisor-dashboard__status--pending { color: var(--status-warning); }
+    .supervisor-dashboard__status--sick { color: var(--status-error); }
+
+    .supervisor-users__muted,
+    .supervisor-users__leave-details {
+        display: block;
+        color: var(--text-muted);
+        font-size: 0.875rem;
+    }
+
+    .supervisor-detail__month-copy {
+        display: grid;
+        gap: var(--space-1);
+    }
+
+    .app-header__menu {
+        flex: none;
+    }
+
+    .time-calendar__header {
+        justify-content: space-between;
+    }
+
+    .time-calendar__controls {
+        justify-content: space-between;
+        padding: var(--space-3);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+    }
+
+    .time-calendar__range-status {
+        margin: 0;
+        padding: var(--space-3) var(--space-4);
+        border-inline-start: 3px solid var(--accent);
+        background: var(--accent-soft);
+        color: var(--text);
+    }
+
+    .time-calendar__month-heading {
+        margin-inline: auto;
+        text-align: center;
+    }
+
+    .time-calendar__calendar-scroll {
+        max-width: 100%;
+        overflow-x: auto;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        overscroll-behavior-inline: contain;
+    }
+
+    .time-calendar__calendar {
+        min-width: 36rem;
+    }
+
+    .time-calendar__weekdays,
+    .time-calendar__week {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+
+    .time-calendar__weekday {
+        padding: var(--space-2);
+        border: 1px solid var(--border);
+        background: var(--surface-subtle);
+        color: var(--text-muted);
+        font-size: 0.875rem;
+        font-weight: 700;
+        text-align: center;
+    }
+
+    .time-calendar__weekday-short {
+        display: none;
+    }
+
+    .time-calendar__day {
+        display: flex;
+        min-width: 0;
+        min-height: 6rem;
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--space-2);
+        padding: var(--space-2);
+        border: 1px solid var(--border);
+        background: var(--status-empty-surface);
+        color: var(--text);
+        font: inherit;
+        text-align: left;
+        transition: background-color 140ms ease, outline-color 140ms ease;
+    }
+
+    .time-calendar__day:hover {
+        background: var(--accent-soft);
+    }
+
+    .time-calendar__day--holiday {
+        border-color: color-mix(in srgb, var(--status-holiday) 36%, var(--border));
+        background: var(--status-holiday-surface);
+        color: var(--status-holiday);
+    }
+
+    .time-calendar__day--sick {
+        border-color: color-mix(in srgb, var(--status-sick) 36%, var(--border));
+        background: var(--status-sick-surface);
+        color: var(--status-sick);
+    }
+
+    .time-calendar__day--vacation,
+    .time-calendar__day--vacation_pending {
+        border-color: color-mix(in srgb, var(--status-vacation) 36%, var(--border));
+        background: var(--status-vacation-surface);
+        color: var(--status-vacation);
+    }
+
+    .time-calendar__day--vacation_pending {
+        border-style: dashed;
+        border-color: color-mix(in srgb, var(--status-vacation-pending) 36%, var(--border));
+        background: var(--status-vacation-pending-surface);
+        color: var(--status-vacation-pending);
+    }
+
+    .time-calendar__day--booked {
+        border-color: color-mix(in srgb, var(--status-booked) 36%, var(--border));
+        background: var(--status-booked-surface);
+        color: var(--status-booked);
+    }
+
+    .time-calendar__day--empty {
+        color: var(--status-empty);
+    }
+
+    .time-calendar__day--today {
+        outline: 3px solid var(--focus-ring);
+        outline-offset: -3px;
+    }
+
+    .time-calendar__day--outside-month .time-calendar__day-number {
+        color: var(--text-muted);
+    }
+
+    .time-calendar__day--range-endpoint {
+        box-shadow: inset 0 0 0 2px var(--accent);
+    }
+
+    .time-calendar__day-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-1);
+    }
+
+    .time-calendar__day-number {
+        font-weight: 700;
+    }
+
+    .time-calendar__today-label,
+    .time-calendar__day-warning {
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    .time-calendar__day-details {
+        overflow-wrap: anywhere;
+        font-size: 0.8rem;
+    }
+
+    .time-calendar__day-warning {
+        color: var(--status-warning);
+    }
+
+    .time-calendar__legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+    }
+
+    .time-calendar__legend-item {
+        border: 1px solid currentColor;
+    }
+
+    .time-calendar__action-button {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .time-calendar__legend-item--holiday { background: var(--status-holiday-surface); color: var(--status-holiday); }
+    .time-calendar__legend-item--sick { background: var(--status-sick-surface); color: var(--status-sick); }
+    .time-calendar__legend-item--vacation { background: var(--status-vacation-surface); color: var(--status-vacation); }
+    .time-calendar__legend-item--vacation-pending { background: var(--status-vacation-pending-surface); color: var(--status-vacation-pending); }
+    .time-calendar__legend-item--booked { background: var(--status-booked-surface); color: var(--status-booked); }
+
+    .time-calendar__modal {
+        width: min(calc(100vw - 2rem), 42rem);
+    }
+
+    .time-calendar__modal-body,
+    .time-calendar__modal-section {
+        display: grid;
+        gap: var(--space-4);
+    }
+
+    .time-calendar__modal-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-3);
+        padding-bottom: var(--space-3);
+        border-bottom: 1px solid var(--border);
+    }
+
+    @media (min-width: 64rem) {
+        .app-page-actions__menu {
+            display: none;
+        }
+
+        .time-page__work-area {
+            grid-template-columns: minmax(16rem, 0.8fr) minmax(0, 1.2fr);
+            align-items: start;
+        }
+
+        .time-page__period-controls {
+            grid-template-columns: minmax(8rem, 1fr) auto minmax(8rem, 1fr) auto;
+        }
+    }
+
+    @media (max-width: 48rem) {
+        .time-page__balance {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .time-page__overview-header {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            align-items: start;
+            min-width: 0;
+        }
+
+        .time-page__period-controls {
+            width: 100%;
+            min-width: 0;
+            grid-template-columns: minmax(0, 1fr) 3rem;
+        }
+
+        .time-page__summary {
+            text-align: start;
+        }
+
+        .time-calendar__weekday-full {
+            display: none;
+        }
+
+        .time-calendar__weekday-short {
+            display: inline;
+        }
+
+        .time-calendar__day {
+            min-height: 4.5rem;
+            padding: var(--space-1);
+        }
+
+        .time-calendar__day-details {
+            display: none;
+        }
+    }
+
+    @media (max-width: 34rem) {
+        .time-page__balance {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+}

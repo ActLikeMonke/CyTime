@@ -1,5 +1,15 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="color-scheme" content="light dark">
+<script>
+    (() => {
+        const preference = localStorage.getItem('appearance');
+        const stored = preference === 'light' || preference === 'dark' || preference === 'system' ? preference : 'system';
+        const dark = stored === 'dark' || (stored === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.classList.toggle('dark', dark);
+        document.documentElement.dataset.appearance = stored;
+    })();
+</script>
 
 <title>
     {{ filled($title ?? null) ? $title.' - '.config('app.name', 'Laravel') : config('app.name', 'Laravel') }}
@@ -12,4 +22,3 @@
 @fonts
 
 @vite(['resources/css/app.css', 'resources/js/app.js'])
-@fluxAppearance

@@ -1,11 +1,15 @@
 <?php
 
+use App\Http\Controllers\UserDataExportController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
 
     Route::livewire('settings/profile', 'pages::settings.profile')->name('profile.edit');
+    Route::get('settings/data-export/{format}', UserDataExportController::class)
+        ->whereIn('format', ['csv', 'json'])
+        ->name('settings.data-export');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
