@@ -13,6 +13,50 @@ class WorkTimeRuleServiceTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_split_period_break_thresholds_use_the_whole_day_and_count_the_gap_once(): void
+    {
+        $adult = User::factory()->create(['birth_date' => '1990-01-01']);
+        $rules = app(WorkTimeRuleService::class);
+        $morning = $this->candidate('2026-09-28', '08:00', '11:00', 0);
+        $exactlySix = $rules->evaluatePeriods($adult, [
+            $morning, $this->candidate('2026-09-28', '11:00', '14:00', 0),
+        ]);
+        $this->assertNotContains('adult-break', $this->codes($exactlySix));
+        $overSix = $rules->evaluatePeriods($adult, [
+            $morning, $this->candidate('2026-09-28', '11:00', '14:01', 0),
+        ]);
+        $this->assertContains('adult-break', $this->codes($overSix));
+        $morning = $this->candidate('2026-09-28', '08:00', '12:00', 0);
+        $exactlyNine = $rules->evaluatePeriods($adult, [
+            $morning, $this->candidate('2026-09-28', '12:30', '17:30', 0),
+        ]);
+        $this->assertNotContains('adult-long-break', $this->codes($exactlyNine));
+        $overNine = $rules->evaluatePeriods($adult, [
+            $morning, $this->candidate('2026-09-28', '12:30', '17:31', 0),
+        ]);
+        $this->assertContains('adult-long-break', $this->codes($overNine));
+    }
+
+    public function test_minor_continuous_limit_joins_touching_periods_but_resets_at_a_gap(): void
+    {
+        $minor = User::factory()->create(['birth_date' => '2010-01-01']);
+        $rules = app(WorkTimeRuleService::class);
+        $morning = $this->candidate('2026-09-28', '08:00', '10:00', 0);
+        $exactlyLimit = $rules->evaluatePeriods($minor, [
+            $morning, $this->candidate('2026-09-28', '10:00', '12:30', 0),
+        ]);
+        $this->assertNotContains('minor-continuous-work', $this->codes($exactlyLimit));
+        $overLimit = $rules->evaluatePeriods($minor, [
+            $morning, $this->candidate('2026-09-28', '10:00', '12:31', 0),
+        ]);
+        $this->assertContains('minor-continuous-work', $this->codes($overLimit));
+        $withGap = $rules->evaluatePeriods($minor, [
+            $morning, $this->candidate('2026-09-28', '11:00', '15:30', 0),
+        ]);
+        $this->assertNotContains('minor-continuous-work', $this->codes($withGap));
+        $this->assertNotContains('minor-long-break', $this->codes($withGap));
+    }
+
     public function test_adult_daily_break_rest_sunday_and_holiday_rules(): void
     {
         $adult = User::factory()->create(['birth_date' => '1990-01-01']);

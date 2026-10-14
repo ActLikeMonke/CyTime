@@ -73,7 +73,7 @@ class UserRoleManagementTest extends TestCase
         $supervisor = User::factory()->create(['role' => User::ROLE_SUPERVISOR]);
 
         $this->actingAs($employee)->get(route('supervisor.users.index'))->assertForbidden();
-        $this->actingAs($supervisor)->get(route('supervisor.users.index'))->assertOk();
+        $this->actingAs($supervisor)->get(route('supervisor.users.index'))->assertRedirect(route('supervisor.dashboard'));
     }
 
     public function test_supervisor_can_promote_an_employee_from_the_management_page(): void
@@ -82,8 +82,8 @@ class UserRoleManagementTest extends TestCase
         $employee = User::factory()->create(['role' => User::ROLE_EMPLOYEE]);
 
         Livewire::actingAs($supervisor)
-            ->test('pages::supervisor.users')
-            ->call('promote', $employee->id)
+            ->test('pages::supervisor.user-detail', ['user' => $employee])
+            ->call('promote')
             ->assertHasNoErrors();
 
         $this->assertSame(User::ROLE_SUPERVISOR, $employee->fresh()->role);
@@ -94,7 +94,7 @@ class UserRoleManagementTest extends TestCase
         $employee = User::factory()->create(['role' => User::ROLE_EMPLOYEE]);
 
         Livewire::actingAs($employee)
-            ->test('pages::supervisor.users')
+            ->test('pages::supervisor.dashboard')
             ->assertForbidden();
     }
 }

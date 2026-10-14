@@ -51,6 +51,8 @@ Run Laravel's scheduler every minute using the hosting platform's scheduler or a
 
 This runs planned-entry finalization, the daily private SQLite backup, and expired-account anonymization. Check `php artisan schedule:list` after deployment and monitor scheduler output through the host's standard service monitoring.
 
+Planned-entry finalization catches up overdue records from earlier dates after scheduler downtime. Authenticated requests also reconcile elapsed plans before rendering balances (employees' own records, or all records for supervisors). This fallback does not replace the scheduler, which remains required for background finalization, backups, and retention work.
+
 If queued jobs are introduced or enabled for the deployment, run `php artisan queue:work` under the platform's process manager and configure restart behavior for deploys. Do not run a development queue listener in production.
 
 ## Backups and operational checks

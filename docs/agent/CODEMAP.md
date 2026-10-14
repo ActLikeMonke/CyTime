@@ -26,3 +26,10 @@ email verification regression test → tests/Feature/Auth/EmailVerificationDisab
 - Deployment guide → `docs/deployment.md`.
 - Employee guide → `docs/employee-guide.md`.
 - Supervisor guide → `docs/supervisor-guide.md`.
+- Shared work-period form behavior and defaults → `app/Livewire/WorkPeriodComponent.php`.
+- Multiple-period form fields → `resources/views/components/ui/work-period-fields.blade.php`.
+- Split-day regression tests → `tests/Feature/SplitTimeEntryTest.php`.
+- Authenticated overdue-plan reconciliation → `app/Http/Middleware/FinalizeElapsedTimeEntries.php`.
+- Supervisor dashboard and consolidated account/leave overview → `resources/views/pages/supervisor/⚡dashboard.blade.php`.
+- Employee settings, schedule history and all absence dates → `resources/views/pages/supervisor/⚡user-detail.blade.php`.
+- Employee access regression tests → `tests/Feature/EmployeeAccessTest.php`.

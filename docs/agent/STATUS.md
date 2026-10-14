@@ -5,6 +5,18 @@
 - Weekly balance shows the accrued shortfall from completed workdays, excluding today, holidays, and applicable absences.
 - Single-day vacation and sick requests from the time calendar submit correctly without enabling range selection.
 - The time calendar generates NRW holidays on demand for viewed years.
-- Verification: `php artisan test --compact` passes (149 passed, 5 skipped; 154 total); `php vendor/bin/pint --test` passes.
+- US-2.1 supports multiple non-overlapping work periods, defaults to 08:00–16:30, and includes gap-aware daily rules and calendar editing.
+- US-2.2 catches up elapsed plans from prior days via the scheduler and authenticated requests; future plans and open clock-ins are preserved.
+- Open clock-ins display as "Clocked in" in My Time, calendar details and supervisor time records without changing stored status.
+- US-9.14: Profile and security settings use consistent section gaps so buttons no longer touch the following divider.
+- The Dashboard page uses the same outer margins as My Time and Absences (removed duplicate padding).
+- First and last names are limited to 30 characters (registration and profile, server-side and maxlength). Date/month pickers on My Time, Absences and employee details debounce updates by 1 s.
+- Date and month fields use a custom keyboard-accessible picker (`resources/js/date-picker.js`) that opens right-aligned under the calendar icon and respects min/max.
+- All calendars (date/month pickers, My time calendar navigation, absence/schedule/month validation) are limited to 20 years back and 2 years ahead (whole years) via `App\Support\CalendarRange`; the registration birth date is exempt.
+- Overall balance is explained in My Time and the employee guide; its existing full-current-week calculation is unchanged.
+- US-5.1: The supervisor dashboard shows remaining/used/pending leave and links to account details; employees remain the default with an optional All accounts filter for supervisor management.
+- The separate Employee access page/navigation is removed; its old list URL redirects to the dashboard. Details return to the dashboard and retain role/leave/schedule management, schedule history and all absence dates.
+- Detail actions reauthorize the locked target; supervisor accounts remain manageable and last-supervisor protection is preserved.
+- Verification: full tests pass (187 passed, 5 skipped; 192 total); Pint, PHPStan and frontend build pass. Date/month picker verified in the browser.
 - Email verification remains intentionally disabled and is covered by a regression test.
 - No remaining backlog items through Epic 9.

@@ -104,11 +104,15 @@ As an employee or supervisor I want to change weekly hours and/or workdays.
 As an employee I want to enter start time, end time and break for today.
 - Net working time is calculated automatically
 - Entry can be marked as vocational school day
+- New manual-entry forms default to 08:00–16:30 with a 30-minute break (8 net hours)
+- Add multiple non-overlapping work periods for the same day in My Time and the calendar; each period remains individually editable and audited
+- Gaps automatically count as breaks for daily rule checks, but are not worked time; only additional breaks within a period are entered manually
 
 **US-2.2 Pre-book today's end time** 🔴 — DONE
 As an employee I want to enter my end time in advance (e.g. at 08:00 enter 16:00).
 - Only possible for the **current day**, never for future days
 - Entry has status `planned` until the end time has passed, then becomes `final` (scheduled job)
+- Finalization catches up earlier dates after downtime; authenticated requests reconcile elapsed plans before displaying records and balances
 - Employee can correct the end time until end of day (e.g. if leaving earlier)
 
 **US-2.3 Weekly balance (individual weekly target)** 🔴 — DONE
@@ -214,16 +218,19 @@ As a supervisor I want an overview of all registered employees.
 | Column | Content |
 |--------|---------|
 | Name | First + last name |
-| Leave days left | Remaining vacation days this year |
+| Leave balance | Remaining vacation days this year, with used and pending days |
 | Leave days used | Approved vacation days this year |
 | Status | e.g. "Sick – approval required", "Leave request pending", "Sick", "On vacation", "OK" |
 | Hour balance | Overtime / undertime (e.g. +6.5 h / −3 h), colour-coded |
 
 - Sortable and filterable (e.g. only open requests)
+- Employees are shown by default; an All accounts filter includes supervisors for account management.
 - Click on employee opens detail view
 
 **US-5.2 Employee detail view** 🟢 — DONE
 - Time entries, absences and weekly balances of one employee
+- The supervisor dashboard replaces the separate Employee access list; names open the detail page.
+- Role, annual leave and working schedule changes live on the detail page with schedule history and all absence dates, including future requests.
 
 **US-5.3 Export** 🟢 — DONE
 - Export monthly hours per employee as CSV (e.g. for payroll)

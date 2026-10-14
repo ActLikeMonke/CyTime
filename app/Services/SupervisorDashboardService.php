@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Absence;
 use App\Models\TimeEntry;
 use App\Models\User;
+use App\Support\CalendarRange;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
@@ -18,17 +19,17 @@ class SupervisorDashboardService
     ) {}
 
     /**
-     * @return array<int, array{user: User, status: string, has_open_requests: bool, remaining_leave_days: int, used_leave_days: int, hour_balance_minutes: int}>
+     * @return array<int, array{user: User, status: string, has_open_requests: bool, remaining_leave_days: int, used_leave_days: int, pending_leave_days: int, hour_balance_minutes: int}>
      */
     public function overview(string $filter, string $sort, string $direction): array
     {
         $validated = Validator::make(compact('filter', 'sort', 'direction'), [
-            'filter' => ['required', 'in:all,open'],
+            'filter' => ['required', 'in:all,open,accounts'],
             'sort' => ['required', 'in:name,remaining_leave_days,used_leave_days,status,hour_balance_minutes'],
             'direction' => ['required', 'in:asc,desc'],
         ])->validate();
         $employees = User::query()
-            ->where('role', User::ROLE_EMPLOYEE)
+            ->when($validated['filter'] !== 'accounts', fn ($query) => $query->where('role', User::ROLE_EMPLOYEE))
             ->orderBy('last_name')
             ->orderBy('first_name')
             ->get();
@@ -54,6 +55,7 @@ class SupervisorDashboardService
                 'has_open_requests' => $hasOpenRequests,
                 'remaining_leave_days' => $leaveBalance['remaining'],
                 'used_leave_days' => $leaveBalance['used'],
+                'pending_leave_days' => $leaveBalance['pending'],
                 'hour_balance_minutes' => $this->weeklyBalances->cumulativeBalance($employee, $today),
             ];
         }
@@ -157,7 +159,7 @@ class SupervisorDashboardService
     private function validatedMonth(string $month): CarbonImmutable
     {
         $validated = Validator::make(['month' => $month], [
-            'month' => ['required', 'date_format:Y-m', 'before_or_equal:'.CarbonImmutable::today()->format('Y-m')],
+            'month' => ['required', 'date_format:Y-m', 'before_or_equal:'.CarbonImmutable::today()->format('Y-m'), 'after_or_equal:'.CalendarRange::minMonth()],
         ])->validate();
 
         return CarbonImmutable::parse($validated['month'].'-01');

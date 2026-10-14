@@ -18,7 +18,7 @@ Route::middleware(['auth', 'role:supervisor'])->group(function () {
     Route::livewire('supervisor/dashboard', 'pages::supervisor.dashboard')
         ->can('viewAny', User::class)
         ->name('supervisor.dashboard');
-    Route::livewire('supervisor/users', 'pages::supervisor.users')
+    Route::redirect('supervisor/users', '/supervisor/dashboard')
         ->can('viewAny', User::class)
         ->name('supervisor.users.index');
     Route::livewire('supervisor/users/{user}', 'pages::supervisor.user-detail')

@@ -16,25 +16,80 @@ class WorkTimeRuleService
      */
     public function evaluate(User $user, array $entry, ?int $excludeEntryId = null): array
     {
-        $date = CarbonImmutable::parse($entry['date']);
-        $start = $this->at($date, $entry['start_time']);
-        $end = $this->at($date, $entry['end_time']);
-        $workMinutes = max(0, (int) (($end->getTimestamp() - $start->getTimestamp()) / 60) - $entry['break_minutes']);
+        return $this->evaluatePeriods($user, [$entry], $excludeEntryId);
+    }
+
+    /**
+     * @param  array<int, array{date: string, start_time: string, end_time: string, break_minutes: int, is_school_day: bool}>  $periods
+     * @return array<int, array{code: string, rule: string, message: string}>
+     */
+    public function evaluatePeriods(User $user, array $periods, ?int $excludeEntryId = null): array
+    {
+        $date = CarbonImmutable::parse($periods[0]['date']);
+        $existing = $user->timeEntries()
+            ->whereDate('date', $date->toDateString())
+            ->whereNotNull('end_time')
+            ->when($excludeEntryId !== null, fn ($query) => $query->whereKeyNot($excludeEntryId))
+            ->get()
+            ->map(fn (TimeEntry $entry): array => [
+                'date' => $entry->date->toDateString(),
+                'start_time' => (string) $entry->start_time,
+                'end_time' => (string) $entry->end_time,
+                'break_minutes' => $entry->break_minutes,
+                'is_school_day' => $entry->is_school_day,
+            ]);
+        $dayPeriods = $existing->concat($periods)->sortBy('start_time')->values();
+        $start = $this->at($date, $dayPeriods->first()['start_time']);
+        $end = $this->at($date, $dayPeriods->max('end_time'));
+        $workMinutes = 0;
+        $continuousMinutes = 0;
+        $maximumContinuousMinutes = 0;
+        $previousEnd = null;
+        foreach ($dayPeriods as $period) {
+            $periodStart = $this->at($date, $period['start_time']);
+            $periodEnd = $this->at($date, $period['end_time']);
+            $net = max(0, (int) (($periodEnd->getTimestamp() - $periodStart->getTimestamp()) / 60) - $period['break_minutes']);
+            $workMinutes += $net;
+            if ($previousEnd !== null && $periodStart > $previousEnd) {
+                $continuousMinutes = 0;
+            }
+            if ($period['break_minutes'] > 0) {
+                $continuousMinutes = 0;
+            } else {
+                $continuousMinutes += $net;
+            }
+            $maximumContinuousMinutes = max($maximumContinuousMinutes, $continuousMinutes);
+            $previousEnd = $periodEnd;
+        }
+        $breakMinutes = max(0, (int) (($end->getTimestamp() - $start->getTimestamp()) / 60) - $workMinutes);
+        $isSchoolDay = $dayPeriods->contains(fn (array $period): bool => $period['is_school_day']);
         $isMinor = $user->birth_date !== null
             && CarbonImmutable::parse($user->birth_date)
                 ->addYears((int) config('worktime.minor.adult_age', 18))
                 ->gt($date);
         $warnings = [];
-        $this->evaluateBreaks($warnings, $workMinutes, $entry['break_minutes'], $isMinor);
-        $this->evaluateDayLimit($warnings, $workMinutes, $entry['is_school_day'], $isMinor);
-        $this->evaluateCalendarDay($warnings, $date, $start, $end, $isMinor);
+        $this->evaluateBreaks($warnings, $workMinutes, $breakMinutes, $isMinor);
+        if ($isMinor && $breakMinutes > 0
+            && $maximumContinuousMinutes > (int) config('worktime.minor.maximum_continuous_minutes', 270)) {
+            $limit = (int) config('worktime.minor.maximum_continuous_minutes', 270);
+            $this->warn($warnings, 'minor-continuous-work', 'JArbSchG §11',
+                "Work exceeds the configured maximum of {$limit} minutes without a break.");
+        }
+        $this->evaluateDayLimit($warnings, $workMinutes, $isSchoolDay, $isMinor);
+        foreach ($dayPeriods as $period) {
+            $this->evaluateCalendarDay($warnings, $date,
+                $this->at($date, $period['start_time']), $this->at($date, $period['end_time']), $isMinor);
+        }
         $this->evaluateRest($warnings, $user, $date, $start, $end, $isMinor, $excludeEntryId);
 
         if ($isMinor) {
-            $this->evaluateMinorWeek($warnings, $user, $entry, $workMinutes, $excludeEntryId);
+            $this->evaluateMinorWeek($warnings, $user, [
+                ...$periods[0],
+                'is_school_day' => $isSchoolDay,
+            ], $workMinutes, $excludeEntryId);
         }
 
-        return $warnings;
+        return collect($warnings)->unique(fn (array $warning): string => $warning['code'].'|'.$warning['message'])->values()->all();
     }
 
     /**
@@ -225,17 +280,20 @@ class WorkTimeRuleService
         $entries = $user->timeEntries()
             ->whereDate('date', '>=', $weekStart->toDateString())
             ->whereDate('date', '<=', $weekEnd->toDateString())
+            ->whereDate('date', '!=', $date->toDateString())
             ->whereNotNull('end_time')
             ->when($excludeEntryId !== null, fn ($query) => $query->whereKeyNot($excludeEntryId))
             ->get();
         $weeklyMinutes = $workMinutes;
         $workdays = [$date->toDateString() => true];
+        $schoolDays = [];
 
         foreach ($entries as $existing) {
             $weeklyMinutes += $existing->netMinutes();
             $workdays[$existing->date->toDateString()] = true;
-            if ($existing->is_school_day) {
+            if ($existing->is_school_day && ! isset($schoolDays[$existing->date->toDateString()])) {
                 $weeklyMinutes += (int) config('worktime.minor.vocational_school_day_credit_minutes', 480);
+                $schoolDays[$existing->date->toDateString()] = true;
             }
         }
         if ($entry['is_school_day']) {

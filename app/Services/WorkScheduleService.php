@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\WorkSchedule;
+use App\Support\CalendarRange;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
@@ -29,7 +30,7 @@ class WorkScheduleService
             'weeklyHours' => ['required', 'numeric', 'gt:0', 'lte:40'],
             'workDays' => ['required', 'array', 'min:1'],
             'workDays.*' => ['required', 'string', 'distinct', Rule::in(['mon', 'tue', 'wed', 'thu', 'fri'])],
-            'validFrom' => ['required', 'date_format:Y-m-d'],
+            'validFrom' => ['required', 'date_format:Y-m-d', ...CalendarRange::dateRules()],
         ])->validate();
 
         return DB::transaction(function () use ($actor, $target, $validated): WorkSchedule {

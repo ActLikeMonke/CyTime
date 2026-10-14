@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\TimeEntry;
 use App\Models\User;
+use App\Support\CalendarRange;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +23,7 @@ class TimeOverviewService
             'referenceDate' => $referenceDate,
         ], [
             'period' => ['required', 'in:day,week,month'],
-            'referenceDate' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
+            'referenceDate' => ['required', 'date_format:Y-m-d', 'before_or_equal:today', 'after_or_equal:'.CalendarRange::minDateString()],
         ])->validate();
         $date = CarbonImmutable::parse($validated['referenceDate']);
 

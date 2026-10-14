@@ -15,6 +15,42 @@ class WorkTimeRuleTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_split_periods_use_daily_totals_and_gaps_as_breaks(): void
+    {
+        $user = User::factory()->create(['birth_date' => '1990-01-01']);
+        $this->createTimeEntry($user, '2026-09-28', '08:00', '11:00', 0);
+        $rules = app(WorkTimeRuleService::class);
+
+        $codes = $this->codes($rules->evaluate($user, $this->entry('2026-09-28', '13:00', '17:00', 0)));
+        $this->assertNotContains('adult-break', $codes);
+        $this->assertNotContains('adult-extended-day', $codes);
+
+        $codes = $this->codes($rules->evaluate($user, $this->entry('2026-09-28', '11:00', '15:01', 0)));
+        $this->assertContains('adult-break', $codes);
+
+        $codes = $this->codes($rules->evaluate($user, $this->entry('2026-09-28', '12:00', '20:01', 0)));
+        $this->assertContains('adult-daily-limit', $codes);
+    }
+
+    public function test_minor_split_days_keep_continuous_work_checks_and_credit_school_only_once(): void
+    {
+        $user = User::factory()->create(['birth_date' => '2010-01-01']);
+        $this->createTimeEntry($user, '2026-09-28', '08:00', '09:00', 0);
+        $warnings = app(WorkTimeRuleService::class)->evaluate(
+            $user, $this->entry('2026-09-28', '11:00', '16:00', 0),
+        );
+        $this->assertContains('minor-continuous-work', $this->codes($warnings));
+        $this->assertNotContains('minor-break', $this->codes($warnings));
+
+        $user->timeEntries()->update(['is_school_day' => true]);
+        config(['worktime.minor.maximum_daily_minutes' => 600, 'worktime.minor.maximum_weekly_minutes' => 600]);
+        $warnings = app(WorkTimeRuleService::class)->evaluate(
+            $user, $this->entry('2026-09-28', '11:00', '12:00', 0, true),
+        );
+        $this->assertNotContains('minor-daily-limit', $this->codes($warnings));
+        $this->assertNotContains('minor-weekly-limit', $this->codes($warnings));
+    }
+
     public function test_adult_break_thresholds_are_strict_and_configurable(): void
     {
         $user = User::factory()->create(['birth_date' => '1990-01-01']);
@@ -267,7 +303,7 @@ class WorkTimeRuleTest extends TestCase
         CarbonImmutable::setTestNow();
     }
 
-    public function test_supervisor_sees_recent_violations_and_employee_route_stays_protected(): void
+    public function test_supervisor_dashboard_hides_flagged_entries_and_employee_route_stays_protected(): void
     {
         CarbonImmutable::setTestNow('2026-09-29 12:00:00');
         $supervisor = User::factory()->create(['role' => User::ROLE_SUPERVISOR]);
@@ -275,13 +311,13 @@ class WorkTimeRuleTest extends TestCase
         $this->createTimeEntry($employee, '2026-09-27', '08:00', '17:00', 0);
 
         Livewire::actingAs($supervisor)
-            ->test('pages::supervisor.users')
-            ->assertSeeText('Recent rule warnings')
-            ->assertSeeText('flagged entries')
-            ->assertSeeText('ArbZG');
+            ->test('pages::supervisor.dashboard')
+            ->assertDontSeeText('Recent rule warnings')
+            ->assertDontSeeText('flagged entries')
+            ->assertDontSeeText('ArbZG');
 
         $this->actingAs($employee)
-            ->get(route('supervisor.users.index'))
+            ->get(route('supervisor.dashboard'))
             ->assertForbidden();
         CarbonImmutable::setTestNow();
     }

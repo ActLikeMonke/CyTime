@@ -33,7 +33,7 @@ class TimeEntryService
 
         return DB::transaction(function () use ($actor, $validated, $status): TimeEntry {
             $lockedUser = User::query()->whereKey($actor->id)->lockForUpdate()->firstOrFail();
-            $this->ensureNoActiveEntry($lockedUser, $validated['date']);
+            $this->ensureNoOverlap($lockedUser, $validated);
             $entry = $lockedUser->timeEntries()->create([
                 ...$validated,
                 'status' => $status,
@@ -62,13 +62,12 @@ class TimeEntryService
         $date = CarbonImmutable::parse($validated['date']);
 
         return DB::transaction(function () use ($actor, $entry, $validated, $date): TimeEntry {
+            User::query()->whereKey($actor->id)->lockForUpdate()->firstOrFail();
             $lockedEntry = TimeEntry::query()->whereKey($entry->id)->lockForUpdate()->firstOrFail();
             $this->ensureEditableDate(CarbonImmutable::parse($lockedEntry->date));
             $this->ensureEditableDate($date);
 
-            if (! $date->isSameDay($lockedEntry->date)) {
-                $this->ensureNoActiveEntry($actor, $validated['date'], $lockedEntry->id);
-            }
+            $this->ensureNoOverlap($actor, $validated, $lockedEntry->id);
 
             $oldValues = $this->snapshot($lockedEntry);
             $endAt = $date->setTimeFromTimeString($validated['end_time']);
@@ -112,7 +111,11 @@ class TimeEntryService
         return DB::transaction(function () use ($actor, $now): TimeEntry {
             $lockedUser = User::query()->whereKey($actor->id)->lockForUpdate()->firstOrFail();
             $date = $now->toDateString();
-            $this->ensureNoActiveEntry($lockedUser, $date);
+            $this->ensureNoOverlap($lockedUser, [
+                'date' => $date,
+                'start_time' => $now->format('H:i:s'),
+                'end_time' => null,
+            ]);
 
             $entry = $lockedUser->timeEntries()->create([
                 'date' => $date,
@@ -170,21 +173,31 @@ class TimeEntryService
         });
     }
 
-    public function finalizePlannedEntries(): int
+    public function finalizePlannedEntries(?User $user = null): int
     {
         $finalized = 0;
+        $reference = CarbonImmutable::now();
 
         TimeEntry::query()
             ->where('status', TimeEntry::STATUS_PLANNED)
-            ->whereDate('date', today())
-            ->whereTime('end_time', '<=', now()->format('H:i:s'))
+            ->whereNotNull('end_time')
+            ->when($user !== null, fn ($query) => $query->where('user_id', $user->id))
+            ->where(function ($query) use ($reference): void {
+                $query->whereDate('date', '<', $reference->toDateString())
+                    ->orWhere(function ($query) use ($reference): void {
+                        $query->whereDate('date', $reference->toDateString())
+                            ->whereTime('end_time', '<=', $reference->format('H:i:s'));
+                    });
+            })
             ->orderBy('id')
-            ->chunkById(100, function ($entries) use (&$finalized): void {
+            ->chunkById(100, function ($entries) use (&$finalized, $reference): void {
                 foreach ($entries as $entry) {
-                    DB::transaction(function () use ($entry, &$finalized): void {
-                        $lockedEntry = TimeEntry::query()->whereKey($entry->id)->lockForUpdate()->firstOrFail();
+                    DB::transaction(function () use ($entry, &$finalized, $reference): void {
+                        $lockedEntry = TimeEntry::query()->whereKey($entry->id)->lockForUpdate()->first();
 
-                        if ($lockedEntry->status !== TimeEntry::STATUS_PLANNED) {
+                        if ($lockedEntry === null || $lockedEntry->status !== TimeEntry::STATUS_PLANNED
+                            || $lockedEntry->end_time === null
+                            || CarbonImmutable::parse($lockedEntry->date)->setTimeFromTimeString($lockedEntry->end_time)->gt($reference)) {
                             return;
                         }
 
@@ -252,19 +265,80 @@ class TimeEntryService
         }
     }
 
-    private function ensureNoActiveEntry(User $user, string $date, ?int $exceptId = null): void
+    /**
+     * @param  array{date: string, start_time: string, end_time: string|null}  $period
+     */
+    private function ensureNoOverlap(User $user, array $period, ?int $exceptId = null): void
     {
-        $query = $user->timeEntries()->whereDate('date', $date);
+        $query = $user->timeEntries()->whereDate('date', $period['date']);
 
         if ($exceptId !== null) {
             $query->whereKeyNot($exceptId);
         }
 
-        if ($query->exists()) {
+        $date = CarbonImmutable::parse($period['date']);
+        $start = $date->setTimeFromTimeString($period['start_time']);
+        $end = $period['end_time'] === null ? null : $date->setTimeFromTimeString($period['end_time']);
+        $overlaps = $query->get()->contains(fn (TimeEntry $entry): bool => ($end === null || $date->setTimeFromTimeString($entry->start_time) < $end)
+            && ($entry->end_time === null || $date->setTimeFromTimeString($entry->end_time) > $start)
+        );
+        if ($overlaps) {
             throw ValidationException::withMessages([
-                'date' => 'A time entry already exists for this date.',
+                'start_time' => 'Work periods must not overlap an existing time entry.',
             ]);
         }
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $periods
+     * @return array<int, array{date: string, start_time: string, end_time: string, break_minutes: int, is_school_day: bool}>
+     */
+    public function validatePeriods(User $actor, array $periods, ?int $exceptId = null): array
+    {
+        Validator::make(['periods' => $periods], [
+            'periods' => ['required', 'array', 'min:1'],
+            'periods.*' => ['required', 'array'],
+        ])->validate();
+        $validated = array_map(fn (array $period): array => $this->validateEntry($period), $periods);
+        $sorted = collect($validated)->sortBy('start_time')->values();
+        foreach ($sorted as $index => $period) {
+            if ($period['date'] !== $sorted->first()['date']) {
+                throw ValidationException::withMessages(['date' => 'All work periods must belong to the same day.']);
+            }
+            if ($index > 0 && $period['start_time'] < $sorted[$index - 1]['end_time']) {
+                throw ValidationException::withMessages(['start_time' => 'Work periods must not overlap.']);
+            }
+            if (CarbonImmutable::parse($period['date'])->isToday()
+                && CarbonImmutable::parse($period['date'])->setTimeFromTimeString($period['start_time'])->isFuture()) {
+                throw ValidationException::withMessages(['start_time' => 'Only today’s end time may be booked in advance.']);
+            }
+            $this->ensureNoOverlap($actor, $period, $exceptId);
+        }
+
+        return $validated;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $periods
+     */
+    public function savePeriods(User $actor, array $periods, ?TimeEntry $editingEntry = null): void
+    {
+        Gate::forUser($actor)->authorize('create', [TimeEntry::class, $actor]);
+        if ($editingEntry !== null) {
+            Gate::forUser($actor)->authorize('update', $editingEntry);
+        }
+
+        DB::transaction(function () use ($actor, $periods, $editingEntry): void {
+            User::query()->whereKey($actor->id)->lockForUpdate()->firstOrFail();
+            $this->validatePeriods($actor, $periods, $editingEntry?->id);
+            foreach ($periods as $index => $period) {
+                if ($index === 0 && $editingEntry !== null) {
+                    $this->update($actor, $editingEntry, $period);
+                } else {
+                    $this->create($actor, $period);
+                }
+            }
+        });
     }
 
     /**

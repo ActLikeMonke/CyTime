@@ -12,7 +12,13 @@ Open **Absence approvals** to process pending requests. Approve or reject each r
 
 ## Manage employee settings
 
-Open **Employees** to view and manage employee accounts. From an employee detail page, authorized supervisors can update the employee's role, leave entitlement, and effective-dated working schedule. Schedule changes apply from the selected effective date, so historical balances continue to use the schedule that applied at the time.
+Open **Supervisor dashboard** to see employees and their leave balances. The **Leave balance** column shows remaining days with used and pending days; pending requests are not deducted until approved. Click a name to open that person's detail page, where you can change their role, annual leave entitlement, and effective-dated working schedule.
+
+Employees are shown by default. Select **All accounts** to include supervisor accounts and access their settings. **Open requests only** continues to filter employees with pending requests. The separate Employee access page and navigation item have been removed; old links to its list redirect to the supervisor dashboard.
+
+The detail page shows the current-year leave balance, all recorded vacation and sick-day dates (including future requests and rejected requests), and working schedule history. The month selector applies only to time entries and weekly balances, not to the absence list. Supervisor accounts can also be opened here to manage their settings or demote them.
+
+Schedule changes apply from the selected effective date, so historical balances continue to use the schedule that applied at the time. The schedule form starts with the schedule currently in effect, not a future schedule. Changing workdays does not automatically recalculate the employee's annual leave entitlement.
 
 Role and leave-entitlement changes are audited. The application protects the last active supervisor from being demoted or deactivating their account.
 

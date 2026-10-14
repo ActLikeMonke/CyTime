@@ -11,6 +11,7 @@
                 :label="__('First name')"
                 :value="old('first_name')"
                 type="text"
+                maxlength="30"
                 required
                 autofocus
                 autocomplete="given-name"
@@ -22,6 +23,7 @@
                 :label="__('Last name')"
                 :value="old('last_name')"
                 type="text"
+                maxlength="30"
                 required
                 autocomplete="family-name"
                 :placeholder="__('Last name')"
@@ -42,6 +44,7 @@
                 :label="__('Date of birth')"
                 :value="old('birth_date')"
                 type="date"
+                :limit-range="false"
                 required
                 autocomplete="bday"
                 max="{{ today()->toDateString() }}"

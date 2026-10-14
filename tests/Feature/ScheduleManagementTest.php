@@ -136,8 +136,7 @@ class ScheduleManagementTest extends TestCase
         $employee = User::factory()->create(['role' => User::ROLE_EMPLOYEE]);
 
         Livewire::actingAs($supervisor)
-            ->test('pages::supervisor.users')
-            ->set('selectedUserId', (string) $employee->id)
+            ->test('pages::supervisor.user-detail', ['user' => $employee])
             ->set('weeklyHours', '32')
             ->set('workDays', ['mon', 'tue', 'wed', 'thu'])
             ->set('scheduleValidFrom', '2026-05-01')

@@ -30,6 +30,23 @@ class UiComponentsTest extends TestCase
         $this->assertStringNotContainsString('ui-input-wrap', $html);
     }
 
+    public function test_date_and_month_inputs_render_an_accessible_picker_toggle(): void
+    {
+        $date = Blade::render('<x-ui.input id="from" label="From" type="date" max="2026-10-06" />');
+        $month = Blade::render('<x-ui.input id="period" label="Month" type="month" />');
+        $text = Blade::render('<x-ui.input id="name" label="Name" type="text" />');
+
+        $this->assertStringContainsString('ui-input-wrap--picker', $date);
+        $this->assertStringContainsString('data-date-picker-toggle="date"', $date);
+        $this->assertStringContainsString('aria-controls="from"', $date);
+        $this->assertStringContainsString('aria-label="Choose date"', $date);
+        $this->assertStringContainsString('aria-expanded="false"', $date);
+        $this->assertStringContainsString('max="2026-10-06"', $date);
+        $this->assertStringContainsString('data-date-picker-toggle="month"', $month);
+        $this->assertStringContainsString('aria-label="Choose month"', $month);
+        $this->assertStringNotContainsString('data-date-picker-toggle', $text);
+    }
+
     public function test_alert_badge_card_and_modal_render_semantic_variants(): void
     {
         $alert = Blade::render('<x-ui.alert type="error">Unable to save.</x-ui.alert>');

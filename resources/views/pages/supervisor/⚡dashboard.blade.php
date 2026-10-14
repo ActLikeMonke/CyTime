@@ -71,9 +71,10 @@ new #[Title('Supervisor dashboard')] class extends Component
     <section class="supervisor-dashboard__filters">
         <div class="supervisor-dashboard__filter-layout">
             <div class="supervisor-dashboard__filter-controls">
-                <x-ui.select wire:model.live="filter" :label="__('Show employees')">
+                <x-ui.select wire:model.live="filter" :label="__('Show accounts')">
                     <option value="all">{{ __('All employees') }}</option>
                     <option value="open">{{ __('Open requests only') }}</option>
+                    <option value="accounts">{{ __('All accounts') }}</option>
                 </x-ui.select>
                 <x-ui.select wire:model.live="sort" :label="__('Sort by')">
                     <option value="name">{{ __('Name') }}</option>
@@ -100,7 +101,7 @@ new #[Title('Supervisor dashboard')] class extends Component
             <thead>
                 <tr>
                     <th>{{ __('Name') }}</th>
-                    <th>{{ __('Leave days left') }}</th>
+                    <th>{{ __('Leave balance') }}</th>
                     <th>{{ __('Leave days used') }}</th>
                     <th>{{ __('Status') }}</th>
                     <th>{{ __('Hour balance') }}</th>
@@ -113,8 +114,19 @@ new #[Title('Supervisor dashboard')] class extends Component
                             <x-ui.link href="{{ route('supervisor.users.show', $row['user']) }}" wire:navigate class="supervisor-dashboard__employee-link">
                                 {{ $row['user']->name }}
                             </x-ui.link>
+                            @if ($row['user']->isSupervisor())
+                                <x-ui.text>{{ __('Supervisor') }}</x-ui.text>
+                            @endif
                         </td>
-                        <td>{{ $row['remaining_leave_days'] }}</td>
+                        <td>
+                            {{ __(':days days remaining', ['days' => $row['remaining_leave_days']]) }}
+                            <span class="supervisor-users__leave-details">
+                                {{ __(':used used · :pending pending', [
+                                    'used' => $row['used_leave_days'],
+                                    'pending' => $row['pending_leave_days'],
+                                ]) }}
+                            </span>
+                        </td>
                         <td>{{ $row['used_leave_days'] }}</td>
                         <td>
                             @php($statusLabel = match ($row['status']) {

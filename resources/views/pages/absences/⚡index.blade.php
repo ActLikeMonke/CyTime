@@ -3,6 +3,7 @@
 use App\Models\Absence;
 use App\Services\AbsenceService;
 use App\Services\LeaveBalanceService;
+use App\Support\CalendarRange;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -43,7 +44,9 @@ new #[Title('Absences and leave')] class extends Component
         if ($this->type !== Absence::TYPE_VACATION
             || ! preg_match('/^\d{4}-\d{2}-\d{2}$/', $this->startDate)
             || ! preg_match('/^\d{4}-\d{2}-\d{2}$/', $this->endDate)
-            || $this->startDate > $this->endDate) {
+            || $this->startDate > $this->endDate
+            || $this->startDate < CalendarRange::minDateString()
+            || $this->endDate > CalendarRange::maxDateString()) {
             return 0;
         }
 
@@ -58,8 +61,8 @@ new #[Title('Absences and leave')] class extends Component
     {
         $validated = $this->validate([
             'type' => ['required', 'in:sick,vacation'],
-            'startDate' => ['required', 'date_format:Y-m-d'],
-            'endDate' => ['required', 'date_format:Y-m-d', 'after_or_equal:startDate'],
+            'startDate' => ['required', 'date_format:Y-m-d', ...CalendarRange::dateRules()],
+            'endDate' => ['required', 'date_format:Y-m-d', 'after_or_equal:startDate', ...CalendarRange::dateRules()],
             'sickNoteSubmitted' => ['boolean'],
         ]);
         app(AbsenceService::class)->request(Auth::user(), [
@@ -120,8 +123,8 @@ new #[Title('Absences and leave')] class extends Component
                 <option value="sick">{{ __('Sick day') }}</option>
                 <option value="vacation">{{ __('Vacation') }}</option>
             </x-ui.select>
-            <x-ui.input wire:model.live="startDate" :label="__('From')" type="date" required />
-            <x-ui.input wire:model.live="endDate" :label="__('Until')" type="date" required />
+            <x-ui.input wire:model.live.debounce.1000ms="startDate" :label="__('From')" type="date" required />
+            <x-ui.input wire:model.live.debounce.1000ms="endDate" :label="__('Until')" type="date" required />
             @if ($type === 'sick')
                 <x-ui.checkbox wire:model="sickNoteSubmitted" :label="__('Sick note (AU) submitted')" />
                 <x-ui.text>{{ __('Do not enter a diagnosis, reason, or medical document.') }}</x-ui.text>

@@ -119,8 +119,8 @@ new #[Title('Profile settings')] class extends Component {
 
     <x-pages::settings.layout :heading="__('Profile')" :subheading="__('Update your name and email address')">
         <form wire:submit="updateProfileInformation" class="settings-profile__form">
-            <x-ui.input wire:model="first_name" error-key="first_name" :label="__('First name')" type="text" required autofocus autocomplete="given-name" />
-            <x-ui.input wire:model="last_name" error-key="last_name" :label="__('Last name')" type="text" required autocomplete="family-name" />
+            <x-ui.input wire:model="first_name" error-key="first_name" :label="__('First name')" type="text" maxlength="30" required autofocus autocomplete="given-name" />
+            <x-ui.input wire:model="last_name" error-key="last_name" :label="__('Last name')" type="text" maxlength="30" required autocomplete="family-name" />
 
             <div class="settings-profile__email-field">
                 <x-ui.input wire:model="email" error-key="email" :label="__('Email')" type="email" required autocomplete="email" />

@@ -9,7 +9,7 @@ class FinalizePlannedTimeEntries extends Command
 {
     protected $signature = 'time-entries:finalize-planned';
 
-    protected $description = 'Finalize today’s planned time entries whose end time has passed';
+    protected $description = 'Finalize all planned time entries whose recorded end date and time have passed';
 
     public function handle(TimeEntryService $timeEntries): int
     {

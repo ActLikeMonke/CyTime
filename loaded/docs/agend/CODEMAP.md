@@ -3,13 +3,9 @@
 ## Project setup
 - `README.md` → local setup, development commands, stack, and branch strategy.
 - `.env.example` → application, SQLite, and local seeder environment defaults.
-- `composer.json` / `composer.lock` → PHP dependencies, Laravel scripts, Blade Heroicons, Pest, and Pint.
-- `package.json` / `package-lock.json` → Vite and frontend build dependencies; no Tailwind or Flux package.
-- `vite.config.js`, `resources/css/app.css`, `resources/js/app.js` → Vite entry points and plain-CSS/JavaScript imports.
-- `resources/css/tokens.css`, `reset.css`, `base.css`, `layout.css`, `utilities.css` → palette and semantic tokens, global styles, app layout, and limited helpers in cascade layers.
-- `resources/css/components/components.css`, `resources/css/components/pages.css` → shared UI component styles and page-specific/responsive styles.
-- `resources/js/ui.js` → appearance, sidebar, dropdown, modal, password, and toast interactions.
-- `resources/views/components/app-page-actions.blade.php` → shared page-level navigation and settings icon controls, replacing the authenticated top bar.
+- `composer.json` / `composer.lock` → PHP dependencies, Laravel scripts, Pest, and Pint.
+- `package.json` / `package-lock.json` → Vite, Tailwind CSS, Flux frontend dependencies.
+- `vite.config.js`, `resources/css/app.css`, `resources/js/app.js` → frontend build entry points.
 - `artisan` → Laravel CLI entry point.
 - `phpunit.xml`, `tests/Pest.php`, `tests/TestCase.php` → test runner configuration and base test cases.
 - `pint.json` → Laravel Pint formatting configuration.
@@ -36,13 +32,13 @@
 - `app/Services/WorkScheduleService.php` → validated, authorized, historical, audited work schedule changes.
 - `app/Services/TimeEntryService.php` → validated manual entries, corrections, clock controls, finalization, and audit history.
 - `app/Services/WorkTimeRuleService.php` → config-driven adult/minor working-time warnings, school credit, recent violations, and rule evaluation.
-- `app/Services/WeeklyBalanceService.php` → schedule-effective weekly targets, elapsed-workday shortfall, approved vacation, immediate sick-day deductions, holidays, and cumulative balances.
+- `app/Services/WeeklyBalanceService.php` → schedule-effective daily targets, approved vacation, immediate sick-day deductions, holidays, and cumulative balances.
 - `app/Services/AbsenceService.php` → validated, authorized, audited absence requests, cancellation, and supervisor review.
 - `app/Services/LeaveBalanceService.php` → schedule- and NRW-holiday-aware leave usage, remaining days, and one-year carry-over.
 - `app/Services/LeaveEntitlementService.php` → supervisor-authorized and audited leave allowance overrides.
-- `app/Services/NrwHolidayService.php` → idempotent generation and on-demand year completion of statutory NRW holidays.
+- `app/Services/NrwHolidayService.php` → idempotent generation of statutory NRW holidays for a calendar year.
 - `app/Services/SupervisorDashboardService.php` → employee status overview, filtered/sorted summaries, monthly details, and monthly-hours export data.
-- `app/Services/TimeCalendarService.php` → owner-scoped Monday-first monthly calendar data, on-demand NRW holidays, day-status precedence, work-entry details, and rule warnings.
+- `app/Services/TimeCalendarService.php` → owner-scoped Monday-first monthly calendar data, day-status precedence, work-entry details, and rule warnings.
 - `app/Services/TimeOverviewService.php` → owner-scoped day, week, and month views of entries and absences.
 - `app/Providers/AppServiceProvider.php` → application service provider and time-entry/absence policy registration.
 - `app/Console/Commands/FinalizePlannedTimeEntries.php` → finalize elapsed planned time entries.
@@ -85,11 +81,11 @@
 - `resources/views/pages/absences/⚡index.blade.php` → employee sick reports, vacation requests, request statuses, and leave balance.
 - `resources/views/pages/supervisor/⚡absences.blade.php` → pending absence approval/rejection queue.
 - `resources/views/pages/time/⚡index.blade.php` → employee time entry, correction, clock controls, balance, period overview, and confirmable work-rule warnings.
-- `resources/views/pages/time/⚡calendar.blade.php` → employee monthly calendar with day details, entry create/edit, rule-warning confirmation, and single/range absence requests; preserves the open action dialog while Livewire updates its content.
-- `resources/views/pages/supervisor/⚡users.blade.php` → employee access, schedules, leave balances/entitlement overrides, and recent working-time rule warnings.
+- `resources/views/pages/time/⚡calendar.blade.php` → employee monthly calendar with day details, entry create/edit, rule-warning confirmation, and single/range absence requests.
+- `resources/views/pages/supervisor/⚡users.blade.php` → employee access, schedules, leave balances/entitlement overrides, and recent working-time rule warnings.ö
 - `resources/views/layouts/`, `resources/views/partials/` → application/auth layouts and shared page partials.
-- `resources/views/components/` → reusable branding, auth, passkey, and shared interface components.
-- `resources/views/components/ui/*.blade.php` → reusable `x-ui.*` controls, form fields, dialogs, dropdowns, status messaging, icons, and layout primitives.
+- `resources/views/components/` → reusable branding, auth, user-menu, and passkey components.
+- `resources/views/flux/` → customized Flux icons and navigation components.
 - `resources/js/passkeys.js` → browser passkey integration.
 - `public/index.php`, `public/.htaccess`, `public/robots.txt`, `public/favicon.*`, `public/apple-touch-icon.png` → public web entry and static assets.
 
@@ -98,7 +94,6 @@
 - `tests/Feature/Auth/EmailVerificationTest.php`, `PasswordConfirmationTest.php`, `PasswordResetTest.php`, `RegistrationTest.php`, `TwoFactorChallengeTest.php` → email verification, password flows, registration, and two-factor feature coverage.
 - `tests/Feature/DashboardTest.php`, `ExampleTest.php` → dashboard and smoke coverage.
 - `tests/Feature/Settings/ProfileUpdateTest.php`, `SecurityTest.php` → account settings coverage.
-- `tests/Feature/UiComponentsTest.php` → shared UI component rendering, variants, attribute forwarding, labels, and errors.
 - `tests/Feature/SetupTest.php` → seeded account, schedules, and soft-delete schema coverage.
 - `tests/Feature/Authorization/RoleAuthorizationTest.php` → role policy and supervisor-route authorization coverage.
 - `tests/Feature/Authorization/UserRoleManagementTest.php` → audited role changes, last-supervisor protection, and management-page authorization.
@@ -119,30 +114,6 @@
 
 ## Documentation
 - `loaded/docs/Backlog.md` → user stories, decisions, and phase status.
-- `loaded/docs/css-migration-inventory.md` → recovered Flux/Tailwind inventory and light/dark visual-reference coverage for the CSS migration.
 - `loaded/docs/data-model.md` → CyTime ER diagram and schema notes.
 - `loaded/docs/agend/STATUS.md` → current phase and next work.
 - `loaded/docs/agend/CODEMAP.md` → project file map.
-- `docs/agent/STATUS.md` → concise project completion status.
-- `docs/agent/CODEMAP.md` → pointers to key deliverables and new files.
-- `docs/backups.md` → database backup policy.
-- `docs/data-retention.md` → data retention policy.
-- `docs/deployment.md` → production deployment checklist and security configuration.
-- `docs/employee-guide.md` → employee workflow guide.
-- `docs/supervisor-guide.md` → supervisor workflow guide.
-
-## Data protection and exports
-- `app/Services/AccountDeactivationService.php` → account deactivation, authentication revocation, and last-supervisor protection.
-- `app/Services/DataRetentionService.php` → scheduled anonymization of expired deactivated accounts while preserving official records.
-- `app/Services/SqliteDatabaseBackupService.php` → safe SQLite snapshot creation and backup destination validation.
-- `app/Services/UserDataExportService.php` → owner-scoped CSV and JSON exports, including official records and audit history.
-- `app/Http/Controllers/UserDataExportController.php` → authenticated user export download endpoints.
-- `app/Http/Middleware/EnsureUserIsActive.php` → blocks deactivated accounts from authenticated application routes.
-- `app/Console/Commands/AnonymizeExpiredAccounts.php` → scheduled retention command.
-- `app/Console/Commands/BackupDatabase.php` → scheduled SQLite backup command.
-- `config/data_retention.php` → retention duration setting.
-- `config/backups.php` → private backup destination settings.
-- `database/migrations/2026_10_05_000000_add_deactivation_metadata_to_users_table.php` → account deactivation and anonymization timestamps.
-- `tests/Feature/DataRetentionTest.php` → account retention and anonymization coverage.
-- `tests/Feature/DatabaseBackupTest.php` → SQLite backup creation and integrity coverage.
-- `tests/Feature/UserDataExportTest.php` → self-scoped export coverage.

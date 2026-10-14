@@ -17,8 +17,75 @@ class TimeEntryTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_open_clock_in_displays_a_readable_status_on_time_pages(): void
+    {
+        CarbonImmutable::setTestNow('2026-09-29 12:00:00');
+        try {
+            $employee = User::factory()->create();
+            $supervisor = User::factory()->create(['role' => User::ROLE_SUPERVISOR]);
+            $entry = app(TimeEntryService::class)->clockIn($employee);
+
+            Livewire::actingAs($employee)->test('pages::time.index')
+                ->assertSeeText('Clocked in')
+                ->assertDontSeeText('in_progress');
+            Livewire::actingAs($employee)->test('pages::time.calendar')
+                ->call('selectDate', '2026-09-29')
+                ->assertSeeText('Clocked in')
+                ->assertDontSeeText('in_progress');
+            Livewire::actingAs($supervisor)
+                ->test('pages::supervisor.user-detail', ['user' => $employee])
+                ->assertSeeText('Clocked in')
+                ->assertDontSeeText('In progress');
+            $this->assertSame(TimeEntry::STATUS_IN_PROGRESS, $entry->fresh()->status);
+        } finally {
+            CarbonImmutable::setTestNow();
+        }
+    }
+
+    public function test_split_periods_are_saved_atomically_and_count_only_worked_time(): void
+    {
+        CarbonImmutable::setTestNow('2026-09-29 18:00:00');
+        $user = User::factory()->create();
+        $component = Livewire::actingAs($user)->test('pages::time.index')
+            ->assertSet('startTime', '08:00')
+            ->assertSet('endTime', '16:30')
+            ->assertSeeText('Net time: 8.00 h')
+            ->set('endTime', '11:00')
+            ->set('breakMinutes', '0')
+            ->call('addWorkPeriod')
+            ->set('additionalPeriods.0.start_time', '13:00')
+            ->set('additionalPeriods.0.end_time', '17:00')
+            ->assertSeeText('Net time: 7.00 h')
+            ->call('saveEntry')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseCount('time_entries', 2);
+        $this->assertDatabaseCount('audit_logs', 2);
+        $this->assertSame(420, $user->timeEntries()->get()->sum(fn (TimeEntry $entry): int => $entry->netMinutes()));
+        $component->assertSeeText('7.00 h');
+        CarbonImmutable::setTestNow();
+    }
+
+    public function test_split_periods_reject_overlap_without_partial_entries_or_audits(): void
+    {
+        CarbonImmutable::setTestNow('2026-09-29 18:00:00');
+        $user = User::factory()->create();
+        Livewire::actingAs($user)->test('pages::time.index')
+            ->set('endTime', '11:00')
+            ->set('breakMinutes', '0')
+            ->call('addWorkPeriod')
+            ->set('additionalPeriods.0.start_time', '10:00')
+            ->set('additionalPeriods.0.end_time', '12:00')
+            ->call('saveEntry')
+            ->assertHasErrors('start_time');
+        $this->assertDatabaseCount('time_entries', 0);
+        $this->assertDatabaseCount('audit_logs', 0);
+        CarbonImmutable::setTestNow();
+    }
+
     public function test_employee_can_record_today_and_past_work_with_net_time_and_audit_history(): void
     {
+        CarbonImmutable::setTestNow('2026-09-29 18:00:00');
         $user = User::factory()->create();
         $entry = app(TimeEntryService::class)->create($user, [
             'date' => '2026-09-28',
@@ -32,6 +99,7 @@ class TimeEntryTest extends TestCase
         $this->assertSame(480, $entry->netMinutes());
         $this->assertTrue($entry->is_school_day);
         $this->assertDatabaseCount('audit_logs', 1);
+        CarbonImmutable::setTestNow();
     }
 
     public function test_today_end_time_in_the_future_is_planned_and_can_be_corrected_until_day_end(): void

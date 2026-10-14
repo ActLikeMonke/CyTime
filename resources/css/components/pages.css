@@ -96,6 +96,18 @@
         color: var(--status-error);
     }
 
+    .settings-content__body,
+    .settings-security__two-factor,
+    .settings-security__passkeys {
+        display: grid;
+        gap: var(--space-5);
+    }
+
+    .settings-security__two-factor,
+    .settings-security__passkeys {
+        gap: var(--space-3);
+    }
+
     .settings-profile__schedule-form,
     .settings-security__two-factor,
     .settings-security__passkeys,

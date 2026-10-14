@@ -76,6 +76,24 @@ class ProfileUpdateTest extends TestCase
         $this->assertNull($user->email_verified_at);
     }
 
+    public function test_names_are_limited_to_thirty_characters(): void
+    {
+        $user = User::factory()->create(['first_name' => 'Old', 'last_name' => 'Name']);
+
+        Livewire::actingAs($user)->test('pages::settings.profile')
+            ->assertSeeHtml('maxlength="30"')
+            ->set('first_name', str_repeat('a', 31))
+            ->set('last_name', str_repeat('b', 31))
+            ->call('updateProfileInformation')
+            ->assertHasErrors(['first_name' => 'max', 'last_name' => 'max'])
+            ->set('first_name', str_repeat('a', 30))
+            ->set('last_name', str_repeat('b', 30))
+            ->call('updateProfileInformation')
+            ->assertHasNoErrors();
+
+        $this->assertSame(str_repeat('a', 30), $user->fresh()->first_name);
+    }
+
     public function test_email_verification_status_is_unchanged_when_email_address_is_unchanged(): void
     {
         $user = User::factory()->create();

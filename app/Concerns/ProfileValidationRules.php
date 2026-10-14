@@ -29,7 +29,7 @@ trait ProfileValidationRules
      */
     protected function firstNameRules(): array
     {
-        return ['required', 'string', 'max:255'];
+        return ['required', 'string', 'max:30'];
     }
 
     /**
@@ -39,7 +39,7 @@ trait ProfileValidationRules
      */
     protected function lastNameRules(): array
     {
-        return ['required', 'string', 'max:255'];
+        return ['required', 'string', 'max:30'];
     }
 
     /**

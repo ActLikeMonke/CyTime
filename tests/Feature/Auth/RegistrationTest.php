@@ -31,6 +31,17 @@ class RegistrationTest extends TestCase
             ->assertSee('work_days[]', false);
     }
 
+    public function test_registration_rejects_names_longer_than_thirty_characters(): void
+    {
+        $this->post(route('register.store'), $this->validRegistrationData([
+            'first_name' => str_repeat('a', 31),
+            'last_name' => str_repeat('b', 31),
+        ]))->assertSessionHasErrors(['first_name', 'last_name']);
+
+        $this->assertGuest();
+        $this->get(route('register'))->assertSee('maxlength="30"', false);
+    }
+
     public function test_new_users_can_register(): void
     {
         $response = $this->post(route('register.store'), $this->validRegistrationData([

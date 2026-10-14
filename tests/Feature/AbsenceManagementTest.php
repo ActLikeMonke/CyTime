@@ -198,10 +198,9 @@ class AbsenceManagementTest extends TestCase
         $this->createSchedule($employee, '2026-01-01', 24, ['mon', 'wed', 'fri']);
 
         Livewire::actingAs($supervisor)
-            ->test('pages::supervisor.users')
+            ->test('pages::supervisor.user-detail', ['user' => $employee])
             ->assertSeeText('Leave balance')
             ->assertSeeText('Change annual leave entitlement')
-            ->set('selectedUserId', (string) $employee->id)
             ->set('annualLeaveDays', '21')
             ->call('updateLeaveEntitlement')
             ->assertHasNoErrors();

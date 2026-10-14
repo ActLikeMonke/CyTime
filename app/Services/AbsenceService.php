@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Absence;
 use App\Models\User;
+use App\Support\CalendarRange;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -25,8 +26,8 @@ class AbsenceService
         Gate::forUser($actor)->authorize('create', [Absence::class, $actor]);
         $validated = Validator::make($data, [
             'type' => ['required', Rule::in([Absence::TYPE_SICK, Absence::TYPE_VACATION])],
-            'start_date' => ['required', 'date_format:Y-m-d'],
-            'end_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:start_date'],
+            'start_date' => ['required', 'date_format:Y-m-d', ...CalendarRange::dateRules()],
+            'end_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:start_date', ...CalendarRange::dateRules()],
             'sick_note_submitted' => ['sometimes', 'boolean'],
         ])->validate();
         $start = CarbonImmutable::parse($validated['start_date']);

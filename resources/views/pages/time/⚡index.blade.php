@@ -1,27 +1,23 @@
 <?php
 
 use App\Models\TimeEntry;
+use App\Livewire\WorkPeriodComponent;
 use App\Services\TimeEntryService;
 use App\Services\TimeOverviewService;
 use App\Services\WeeklyBalanceService;
 use App\Services\WorkTimeRuleService;
+use App\Support\CalendarRange;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
-use Livewire\Component;
 
-new #[Title('My time')] class extends Component {
+new #[Title('My time')] class extends WorkPeriodComponent {
     public string $period = 'week';
     public string $referenceDate = '';
-    public ?int $editingEntryId = null;
     public string $entryDate = '';
-    public string $startTime = '08:00';
-    public string $endTime = '16:00';
-    public string $breakMinutes = '30';
     public string $clockBreakMinutes = '0';
-    public bool $isSchoolDay = false;
     public array $ruleWarnings = [];
     public bool $confirmRuleWarnings = false;
     public array $clockOutWarnings = [];
@@ -123,7 +119,7 @@ new #[Title('My time')] class extends Component {
             'month' => $date->subMonth(),
             default => $date->subWeek(),
         };
-        $this->referenceDate = $previous->toDateString();
+        $this->referenceDate = max($previous->toDateString(), CalendarRange::minDateString());
         unset($this->overview);
     }
 
@@ -146,23 +142,18 @@ new #[Title('My time')] class extends Component {
     {
         $actor = Auth::user();
         $validated = $this->validate([
-            'entryDate' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
-            'startTime' => ['required', 'date_format:H:i'],
-            'endTime' => ['required', 'date_format:H:i', 'after:startTime'],
-            'breakMinutes' => ['required', 'integer', 'min:0', 'max:1440'],
-            'isSchoolDay' => ['boolean'],
+            'entryDate' => ['required', 'date_format:Y-m-d', 'before_or_equal:today', 'after_or_equal:'.CalendarRange::minDateString()],
         ]);
         $service = app(TimeEntryService::class);
-        $data = [
-            'date' => $validated['entryDate'],
-            'start_time' => $validated['startTime'],
-            'end_time' => $validated['endTime'],
-            'break_minutes' => (int) $validated['breakMinutes'],
-            'is_school_day' => $validated['isSchoolDay'],
-        ];
-        $this->ruleWarnings = app(WorkTimeRuleService::class)->evaluate(
+        $periods = $this->validatedWorkPeriods($validated['entryDate']);
+        $entry = $this->editingEntryId === null ? null : $actor->timeEntries()->findOrFail($this->editingEntryId);
+        if ($entry !== null) {
+            Gate::authorize('update', $entry);
+        }
+        $service->validatePeriods($actor, $periods, $entry?->id);
+        $this->ruleWarnings = app(WorkTimeRuleService::class)->evaluatePeriods(
             $actor,
-            $data,
+            $periods,
             $this->editingEntryId,
         );
 
@@ -170,12 +161,7 @@ new #[Title('My time')] class extends Component {
             return;
         }
 
-        if ($this->editingEntryId === null) {
-            $service->create($actor, $data);
-        } else {
-            $entry = $actor->timeEntries()->findOrFail($this->editingEntryId);
-            $service->update($actor, $entry, $data);
-        }
+        $service->savePeriods($actor, $periods, $entry);
 
         $this->editingEntryId = null;
         $this->ruleWarnings = [];
@@ -231,6 +217,7 @@ new #[Title('My time')] class extends Component {
         }
 
         $this->clearRuleConfirmation();
+        $this->additionalPeriods = [];
         $this->editingEntryId = $entry->id;
         $this->entryDate = $entry->date->toDateString();
         $this->startTime = substr((string) $entry->start_time, 0, 5);
@@ -303,10 +290,11 @@ new #[Title('My time')] class extends Component {
     public function resetEntryForm(): void
     {
         $this->editingEntryId = null;
+        $this->additionalPeriods = [];
         $this->clearRuleConfirmation();
     }
 
-    private function clearRuleConfirmation(): void
+    protected function clearRuleConfirmation(): void
     {
         $this->ruleWarnings = [];
         $this->confirmRuleWarnings = false;
@@ -318,20 +306,6 @@ new #[Title('My time')] class extends Component {
         $this->confirmClockOutWarnings = false;
     }
 
-    #[Computed]
-    public function previewNetMinutes(): int
-    {
-        if (! preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $this->startTime)
-            || ! preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $this->endTime)
-            || ! ctype_digit($this->breakMinutes)) {
-            return 0;
-        }
-
-        [$startHour, $startMinute] = array_map('intval', explode(':', $this->startTime));
-        [$endHour, $endMinute] = array_map('intval', explode(':', $this->endTime));
-
-        return max(0, ($endHour * 60 + $endMinute) - ($startHour * 60 + $startMinute) - (int) $this->breakMinutes);
-    }
 }; ?>
 
 <div class="time-page">
@@ -372,8 +346,8 @@ new #[Title('My time')] class extends Component {
                     <option value="week">{{ __('Week') }}</option>
                     <option value="month">{{ __('Month') }}</option>
                 </x-ui.select>
-                <x-ui.button wire:click="previousPeriod" aria-label="{{ __('Previous period') }}">‹</x-ui.button>
-                <x-ui.input wire:model.live="referenceDate" :label="__('Date')" type="date" :max="today()->toDateString()" />
+                <x-ui.button wire:click="previousPeriod" aria-label="{{ __('Previous period') }}" :disabled="$referenceDate <= CalendarRange::minDateString()">‹</x-ui.button>
+                <x-ui.input wire:model.live.debounce.1000ms="referenceDate" :label="__('Date')" type="date" :max="today()->toDateString()" />
                 <x-ui.button wire:click="nextPeriod" aria-label="{{ __('Next period') }}" :disabled="CarbonImmutable::parse($referenceDate)->isToday()">›</x-ui.button>
             </div>
         </div>
@@ -402,7 +376,7 @@ new #[Title('My time')] class extends Component {
                             <td>{{ substr((string) $entry->start_time, 0, 5) }} – {{ $entry->end_time ? substr((string) $entry->end_time, 0, 5) : '—' }}</td>
                             <td>{{ $entry->break_minutes }} min</td>
                             <td>{{ number_format($entry->netMinutes() / 60, 2) }} h</td>
-                            <td>{{ __($entry->status) }}{{ $entry->is_school_day ? ' · '.__('School') : '' }}</td>
+                            <td>{{ $entry->status === TimeEntry::STATUS_IN_PROGRESS ? __('Clocked in') : __($entry->status) }}{{ $entry->is_school_day ? ' · '.__('School') : '' }}</td>
                             <td>
                                 @if (isset($this->overviewRuleWarnings[$entry->id]))
                                     <details class="time-page__rule-details">
@@ -471,24 +445,22 @@ new #[Title('My time')] class extends Component {
             @else
                 <x-ui.button variant="primary" wire:click="clockIn">{{ __('Clock in') }}</x-ui.button>
             @endif
-            @error('clock')
-                <p class="time-page__error" role="alert">{{ $message }}</p>
-            @enderror
+            @foreach (['clock', 'start_time', 'timeEntry'] as $field)
+                @error($field)<p class="time-page__error" role="alert">{{ $message }}</p>@enderror
+            @endforeach
         </section>
 
         <form wire:submit="saveEntry" class="time-page__entry-form">
             <x-ui.heading level="2">{{ $editingEntryId ? __('Correct time entry') : __('Log working time') }}</x-ui.heading>
             <div class="time-page__entry-date">
-                <x-ui.input wire:model.live="entryDate" :label="__('Date')" type="date" :max="today()->toDateString()" required />
+                <x-ui.input wire:model.live.debounce.1000ms="entryDate" :label="__('Date')" type="date" :max="today()->toDateString()" required />
                 <x-ui.button type="button" size="sm" variant="secondary" wire:click="previousEntryDate" aria-label="{{ __('Previous day') }}" title="{{ __('Previous day') }}">‹</x-ui.button>
                 <x-ui.button type="button" size="sm" variant="secondary" wire:click="nextEntryDate" :disabled="CarbonImmutable::parse($entryDate)->isToday()" aria-label="{{ __('Next day') }}" title="{{ __('Next day') }}">›</x-ui.button>
             </div>
-            <x-ui.input wire:model.live="startTime" :label="__('Start time')" type="time" required />
-            <x-ui.input wire:model.live="endTime" :label="__('End time')" type="time" required />
-            <x-ui.input wire:model.live="breakMinutes" :label="__('Break (minutes)')" type="number" min="0" max="1440" required />
+            <x-ui.work-period-fields :periods="$additionalPeriods" :allow-add="$editingEntryId === null" />
             <x-ui.checkbox wire:model.live="isSchoolDay" :label="__('Vocational school day')" />
             <x-ui.text>{{ __('Net time: :hours h', ['hours' => number_format($this->previewNetMinutes / 60, 2)]) }}</x-ui.text>
-            @foreach (['entryDate', 'startTime', 'endTime', 'breakMinutes', 'isSchoolDay', 'date', 'start_time', 'end_time', 'break_minutes', 'is_school_day', 'entry'] as $field)
+            @foreach (['entryDate', 'startTime', 'endTime', 'breakMinutes', 'isSchoolDay', 'additionalPeriods', 'date', 'start_time', 'end_time', 'break_minutes', 'is_school_day', 'entry'] as $field)
                 @error($field)
                     <p class="time-page__error" role="alert">{{ $message }}</p>
                 @enderror

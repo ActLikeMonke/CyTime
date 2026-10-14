@@ -31,11 +31,8 @@
                     </a>
                     @if (auth()->user()->isSupervisor())
                         <p class="app-sidebar__label">{{ __('Supervision') }}</p>
-                        <a class="app-nav-link {{ request()->routeIs('supervisor.dashboard') ? 'is-current' : '' }}" href="{{ route('supervisor.dashboard') }}" wire:navigate>
+                        <a class="app-nav-link {{ request()->routeIs('supervisor.dashboard', 'supervisor.users.*') ? 'is-current' : '' }}" href="{{ route('supervisor.dashboard') }}" wire:navigate>
                             <x-ui.icon name="chart-bar" />{{ __('Supervisor dashboard') }}
-                        </a>
-                        <a class="app-nav-link {{ request()->routeIs('supervisor.users.*') ? 'is-current' : '' }}" href="{{ route('supervisor.users.index') }}" wire:navigate>
-                            <x-ui.icon name="users" />{{ __('Employee access') }}
                         </a>
                         <a class="app-nav-link {{ request()->routeIs('supervisor.absences.*') ? 'is-current' : '' }}" href="{{ route('supervisor.absences.index') }}" wire:navigate>
                             <x-ui.icon name="clipboard-document-check" />{{ __('Absence approvals') }}
